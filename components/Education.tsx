@@ -1,7 +1,8 @@
-import React from 'react';
-import type { Education } from '../types';
 
-const EducationItem: React.FC<{ item: Education }> = ({ item }) => (
+import React from 'react';
+import type { EducationType } from '../types';
+
+const EducationItem: React.FC<{ item: EducationType }> = ({ item }) => (
      <div className="card-sheet">
         <p className="timeline-period">{item.period}</p>
         <h3 className="timeline-title">{item.degree}</h3>
@@ -15,7 +16,7 @@ const EducationItem: React.FC<{ item: Education }> = ({ item }) => (
 );
 
 
-const Education: React.FC<{ education: Education[] }> = ({ education }) => {
+const Education: React.FC<{ education: EducationType[] }> = ({ education }) => {
     return (
         <div className="timeline-container">
             {education.map(edu => (

@@ -17,20 +17,23 @@ const DeploymentGuide: React.FC = () => {
                 <li>
                     <strong>Fork & Clone this Repository:</strong> First, create your own copy of this code on GitHub.
                 </li>
-                <li>
-                    <strong>Sign up for Vercel:</strong> Go to <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" style={linkStyle}>Vercel</a> and sign up using your GitHub account.
+                 <li>
+                    <strong>Install Dependencies:</strong> Open your terminal in the project folder and run <CodeBlock>npm install</CodeBlock>.
                 </li>
                 <li>
                     <strong>Create a Gemini API Key:</strong> Visit the <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={linkStyle}>Google AI Studio</a> to create your API key for the chatbot.
                 </li>
-                <li>
-                    <strong>Create a New Vercel Project:</strong> In your Vercel dashboard, click "Add New... &gt; Project". Import the GitHub repository you created in step 1.
-                </li>
-                <li>
-                    <strong>Configure Environment Variable:</strong> In the project settings, go to the "Environment Variables" section. Add a new variable with the name <CodeBlock>API_KEY</CodeBlock> and paste the Gemini API key you got in step 3 as the value.
+                 <li>
+                    <strong>Create <CodeBlock>.env</CodeBlock> file:</strong> In the root of your project, create a file named <CodeBlock>.env</CodeBlock>. Inside this file, add your API key like this: <CodeBlock>VITE_API_KEY=YOUR_API_KEY_HERE</CodeBlock>.
                 </li>
                  <li>
-                    <strong>Deploy:</strong> Click the "Deploy" button. Vercel will build and deploy your site. Once it's finished, you'll have a live URL for your new portfolio!
+                    <strong>Run Locally (Optional):</strong> Run <CodeBlock>npm run dev</CodeBlock> to see your portfolio locally at <CodeBlock>http://localhost:5173</CodeBlock>.
+                </li>
+                <li>
+                    <strong>Deploy to Vercel:</strong> Push your code to GitHub, then go to <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" style={linkStyle}>Vercel</a> and import your repository. Vercel will automatically detect it's a Vite project.
+                </li>
+                <li>
+                    <strong>Configure Vercel Environment Variable:</strong> In your Vercel project settings, go to "Environment Variables". Add a new variable with the name <CodeBlock>VITE_API_KEY</CodeBlock> and paste your Gemini API key as the value. Re-deploy if necessary.
                 </li>
             </ol>
             <p style={{paddingTop: '1rem', marginTop: '1rem', borderTop: '1px solid #2c2c2c'}}>

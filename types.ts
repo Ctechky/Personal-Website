@@ -1,10 +1,11 @@
+
 export interface Project {
   title: string;
   link?: string;
   year?: string;
 }
 
-export interface Experience {
+export interface ExperienceType {
   role: string;
   company: string;
   period: string;
@@ -18,7 +19,7 @@ export interface LeadershipExperience {
   description: string[];
 }
 
-export interface Education {
+export interface EducationType {
     degree: string;
     institution: string;
     period: string;
@@ -41,9 +42,9 @@ export interface ResumeData {
   };
   about: string;
   projects: Project[];
-  experience: Experience[];
+  experience: ExperienceType[];
   leadership: LeadershipExperience[];
-  education: Education[];
+  education: EducationType[];
   skills: SkillCategory[];
   resumeUrl: string;
 }

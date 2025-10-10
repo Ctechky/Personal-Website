@@ -1,7 +1,8 @@
-import React from 'react';
-import type { Experience } from '../types';
 
-const ExperienceItem: React.FC<{ item: Experience }> = ({ item }) => (
+import React from 'react';
+import type { ExperienceType } from '../types';
+
+const ExperienceItem: React.FC<{ item: ExperienceType }> = ({ item }) => (
     <div className="card-sheet">
         <p className="timeline-period">{item.period}</p>
         <h3 className="timeline-title">{item.role}</h3>
@@ -14,7 +15,7 @@ const ExperienceItem: React.FC<{ item: Experience }> = ({ item }) => (
     </div>
 );
 
-const Experience: React.FC<{ experiences: Experience[] }> = ({ experiences }) => {
+const Experience: React.FC<{ experiences: ExperienceType[] }> = ({ experiences }) => {
     return (
         <div className="timeline-container">
             {experiences.map(exp => (

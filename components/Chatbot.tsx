@@ -73,12 +73,8 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
     useEffect(scrollToBottom, [messages]);
 
     const initializeChat = useCallback(() => {
-        if (!process.env.API_KEY) {
-            console.error("API_KEY environment variable not set.");
-            setMessages([{ role: 'model', text: "I'm sorry, the chatbot is not configured correctly. An API key is missing." }]);
-            return;
-        }
-
+        // Fix: Use `process.env.API_KEY` as defined in `vite.config.ts` and required by coding guidelines.
+        // This also resolves the TypeScript error for `import.meta.env`.
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const systemInstruction = `You are a helpful and friendly AI assistant for ${resumeData.name}'s portfolio website. Your goal is to answer questions from potential recruiters about ${resumeData.name}'s skills, projects, and experience. Use the following resume data to answer questions. Be professional and concise. Here is the resume data in JSON format: ${JSON.stringify(resumeData)}`;
         
@@ -92,9 +88,9 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
     }, [resumeData]);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && !chatRef.current) {
            initializeChat();
-        } else {
+        } else if (!isOpen) {
             setMessages([]);
             chatRef.current = null;
         }
