@@ -1,0 +1,29 @@
+import React from 'react';
+import type { Experience } from '../types';
+
+const ExperienceItem: React.FC<{ item: Experience }> = ({ item }) => (
+    <div className="card-sheet">
+        <p className="timeline-period">{item.period}</p>
+        <h3 className="timeline-title">{item.role}</h3>
+        <p className="timeline-subtitle">{item.company}</p>
+        <ul className="timeline-description">
+            {item.description.map((desc, i) => (
+                <li key={i}>{desc}</li>
+            ))}
+        </ul>
+    </div>
+);
+
+const Experience: React.FC<{ experiences: Experience[] }> = ({ experiences }) => {
+    return (
+        <div className="timeline-container">
+            {experiences.map(exp => (
+                <div key={exp.role + exp.company} className="timeline-item">
+                    <ExperienceItem item={exp} />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default Experience;
