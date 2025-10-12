@@ -1,24 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import type { ResumeData, ChatMessage } from '../types';
 
-// Check if Gemini is available
 const API_KEY = import.meta.env.VITE_API_KEY;
-const isGeminiAvailable = API_KEY && typeof window !== 'undefined';
-
-// Dynamic import for Gemini (only when needed)
-let GoogleGenAI: any = null;
-let Chat: any = null;
-
-if (isGeminiAvailable) {
-  try {
-    // This will only work in local development with proper API key
-    const genai = require('@google/genai');
-    GoogleGenAI = genai.GoogleGenAI;
-    Chat = genai.Chat;
-  } catch (error) {
-    console.warn('Google GenAI not available:', error);
-  }
-}
 
 const createSystemInstruction = (resume: ResumeData): string => {
     return `You are a helpful and friendly chatbot assistant for ${resume.name}'s personal portfolio website.
@@ -35,13 +19,12 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [input, setInput] = useState('');
-    const chatRef = useRef<Chat | null>(null);
+    const chatRef = useRef<any>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen && messages.length === 0 && !error) {
-            if (!isGeminiAvailable || !GoogleGenAI) {
-                // Fallback when Gemini is not available
+            if (!API_KEY) {
                 setMessages([{ 
                     role: 'model', 
                     text: `Hi! I'm ${resumeData.name}. For questions about my background, experience, and projects, please contact me directly.` 
@@ -93,8 +76,8 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
         const chat = chatRef.current;
         if (!input.trim() || isLoading) return;
 
-        // If Gemini is not available, show contact info
-        if (!isGeminiAvailable || !chat) {
+        // If no API key or chat not initialized, show contact info
+        if (!API_KEY || !chat) {
             setMessages(prev => [...prev, 
                 { role: 'user', text: input },
                 { role: 'model', text: `For detailed questions about ${resumeData.name}, please contact me directly:\n\n📧 ${resumeData.contact.email}\n💼 LinkedIn: ${resumeData.contact.linkedin || 'Not available'}` }
@@ -143,7 +126,7 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
         <div className="chatbot-container">
             <div className="chatbot-window">
                 <div className="chatbot-header">
-                    <h3>{isGeminiAvailable ? 'Ask me anything!' : 'Contact Me'}</h3>
+                    <h3>{API_KEY ? 'Ask me anything!' : 'Contact Me'}</h3>
                     <button 
                         className="chatbot-close" 
                         onClick={() => setIsOpen(false)}
@@ -179,7 +162,7 @@ const Chatbot: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={isGeminiAvailable ? "Ask about my experience..." : "Contact me directly..."}
+                        placeholder={API_KEY ? "Ask about my experience..." : "Contact me directly..."}
                         disabled={isLoading}
                         className="chatbot-input"
                     />
