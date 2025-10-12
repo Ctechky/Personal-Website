@@ -54,8 +54,8 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 const Projects: React.FC<{ projects: Project[] }> = ({ projects }) => {
     return (
         <div className="projects-container">
-            {projects.map(project => (
-                <ProjectCard key={project.title} project={project} />
+            {projects.map((project, index) => (
+                <ProjectCard key={`${project.title}-${project.year || index}`} project={project} />
             ))}
         </div>
     );

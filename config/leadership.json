@@ -1,0 +1,52 @@
+{
+  "leadership": [
+    {
+      "role": "President",
+      "organization": "American Institute of Chemical Engineers (AIChE), NTU Student Chapter",
+      "period": "September 2024 - Present",
+      "website": "https://aiche-ntu.github.io/",
+      "description": [
+        "Founded official NTU chapter, fostering professional development and industry connections.",
+        "Organized industry workshops and networking events to enhance technical skills.",
+        "Planned sustainability-driven hydrogen-fuel E-car competition using iodine-clock reaction."
+      ]
+    },
+    {
+      "role": "Vice-President",
+      "organization": "Analytics and Data Science Club, School of Chemistry, Chemical Engineering and Biotechnology",
+      "period": "September 2025 - Present",
+      "description": [
+        "Analyzing semiconductor, chemical, and biomedical datasets on Kaggle using Python, SQL, and MATLAB, building predictive models.",
+        "Conducting machine learning experiments and sharing results in student-accessible workshops and seasonal showcases."
+      ]
+    },
+    {
+      "role": "Head Programmer",
+      "organization": "NTU One Arena 2024, College of Engineering",
+      "period": "October 2023 - June 2024",
+      "description": [
+        "Led 15-member team, developed robot use tutorials, and resolved technical issues for 130 participants from 24 schools.",
+        "Built Python-coded robotic maze and competition schedule, reducing event transitions by 3 minutes."
+      ]
+    },
+    {
+      "role": "Event Chairperson",
+      "organization": "Chinese Cultural Camp, NTU Chinese Society",
+      "period": "September 2023 - June 2024",
+      "description": [
+        "Managed a committee team of 30 members, ensuring efforts remained organized and coordinated.",
+        "Oversaw budget planning, cutting down initial budget by $3000 while assuring cultural promotion objectives are met.",
+        "Devised alternative activities format to ensure event continuity during participant shortages, preventing event cancellation."
+      ]
+    },
+    {
+      "role": "Programmer",
+      "organization": "Freshman Orientation Activities, AMCISA",
+      "period": "August 2023 - August 2024",
+      "description": [
+        "Planned and executed interactive games using JavaScript and Google Apps Script, with integrated Google Sheets formulas for real-time tracking.",
+        "Coordinated with different portfolios to ensure smooth procedures and seamless execution of events."
+      ]
+    }
+  ]
+}

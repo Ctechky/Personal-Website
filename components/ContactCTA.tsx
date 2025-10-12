@@ -1,13 +1,12 @@
 import React from 'react';
 
 interface ContactCTAProps {
-  name: string;
   email: string;
   linkedin?: string;
   telegram?: string;
 }
 
-const ContactCTA: React.FC<ContactCTAProps> = ({ name, email, linkedin, telegram }) => {
+const ContactCTA: React.FC<ContactCTAProps> = ({ email, linkedin, telegram }) => {
   return (
     <div className="contact-cta-container">
       <div className="contact-cta-content">

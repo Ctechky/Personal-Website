@@ -1,0 +1,39 @@
+{
+  "hobbies": [
+    {
+      "name": "Building Personal Tools",
+      "image": "hobby_coding",
+      "description": "Creating small automation tools and utilities"
+    },
+    {
+      "name": "Debate",
+      "image": "hobby_debate",
+      "description": "Engaging in intellectual discussions and arguments"
+    },
+    {
+      "name": "Watching Movies",
+      "image": "hobby_movies",
+      "description": "Enjoying films and cinematic storytelling"
+    },
+    {
+      "name": "Ping Pong",
+      "image": "hobby_pingpong",
+      "description": "Fast-paced table tennis for quick reflexes"
+    },
+    {
+      "name": "Running",
+      "image": "hobby_running",
+      "description": "Staying active and building endurance"
+    },
+    {
+      "name": "Mahjong",
+      "image": "hobby_mahjong",
+      "description": "Strategic tile game with friends and family"
+    },
+    {
+      "name": "Reading",
+      "image": "hobby_reading",
+      "description": "Technical books and industry insights"
+    }
+  ]
+}

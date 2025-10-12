@@ -28,6 +28,13 @@ const IMAGE_MAP: Record<string, string> = {
   'hobby_running': encode('https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=500&h=300&fit=crop'),
   'hobby_mahjong': encode('https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=500&h=300&fit=crop'),
   'hobby_reading': encode('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=500&h=300&fit=crop'),
+  
+  // AIChE and Chemical Engineering related images
+  'aiche_1': encode('https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=250&fit=crop'),
+  'aiche_2': encode('https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=250&fit=crop'),
+  'aiche_3': encode('https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=400&h=250&fit=crop'),
+  'chem_eng_1': encode('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=250&fit=crop'),
+  'chem_eng_2': encode('https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=400&h=250&fit=crop'),
 };
 
 export const getImageUrl = (key: string): string => {

@@ -5,7 +5,15 @@ const LeadershipItem: React.FC<{ item: LeadershipExperience }> = ({ item }) => (
     <div className="card-sheet">
         <p className="timeline-period">{item.period}</p>
         <h3 className="timeline-title">{item.role}</h3>
-        <p className="timeline-subtitle">{item.organization}</p>
+        <p className="timeline-subtitle">
+            {item.website ? (
+                <a href={item.website} target="_blank" rel="noopener noreferrer" className="organization-link">
+                    {item.organization}
+                </a>
+            ) : (
+                item.organization
+            )}
+        </p>
         <ul className="timeline-description">
             {item.description.map((desc, i) => (
                 <li key={i}>{desc}</li>

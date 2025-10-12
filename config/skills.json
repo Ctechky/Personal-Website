@@ -1,0 +1,32 @@
+{
+  "skills": [
+    {
+      "title": "Process Engineering",
+      "skills": ["Semiconductor Manufacturing", "Wafer Fabrication", "Lithography Process Optimization", "Quality Management Systems", "Process Control", "Root Cause Analysis", "SEM Microscopy"]
+    },
+    {
+      "title": "Data Analytics & ML",
+      "skills": ["Predictive Analytics", "Machine Learning", "Statistical Analysis", "Data Mining", "Text Analytics", "PyTorch", "Scikit-Learn", "Power BI", "Python", "SQL"]
+    },
+    {
+      "title": "Semiconductor & Energy Tools",
+      "skills": ["AVEVA Process Simulation", "Aspen HYSYS", "DWSIM", "SEM Microscopy", "Process Automation", "Quality Control Systems"]
+    },
+    {
+      "title": "Programming & Databases",
+      "skills": ["Python", "SQL", "MATLAB", "JavaScript", "TypeScript", "Database Design", "SQLite", "MySQL", "Django ORM"]
+    },
+    {
+      "title": "Automation & Platforms",
+      "skills": ["Microsoft Power Platform", "Power Automate", "Power Apps", "Azure", "Data Visualization", "Dashboard Development"]
+    },
+    {
+      "title": "Languages",
+      "skills": ["English (Proficient)", "Chinese (Proficient)", "Malay (Proficient)", "Spanish (Conversant)"]
+    },
+    {
+      "title": "Awards & Certifications",
+      "skills": ["Kuok Foundation Scholarship", "IMONST Bronze Award (2018)", "IChONST Honourable Mention (2018)", "Python Certifications (Coursera)"]
+    }
+  ]
+}

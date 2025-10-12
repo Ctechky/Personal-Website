@@ -6,7 +6,15 @@ const EducationItem: React.FC<{ item: EducationType }> = ({ item }) => (
      <div className="card-sheet">
         <p className="timeline-period">{item.period}</p>
         <h3 className="timeline-title">{item.degree}</h3>
-        <p className="timeline-subtitle">{item.institution}</p>
+        <p className="timeline-subtitle">
+            {item.website ? (
+                <a href={item.website} target="_blank" rel="noopener noreferrer" className="organization-link">
+                    {item.institution}
+                </a>
+            ) : (
+                item.institution
+            )}
+        </p>
         <ul className="timeline-description">
             {item.details.map((detail, i) => (
                 <li key={i}>{detail}</li>

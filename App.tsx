@@ -86,7 +86,7 @@ const App: React.FC = () => {
           </main>
         </div>
       </div>
-      <Chatbot resumeData={RESUME_DATA} />
+            <Chatbot resumeData={RESUME_DATA} theme={theme} />
     </>
   );
 };

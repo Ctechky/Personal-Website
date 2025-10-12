@@ -1,0 +1,84 @@
+{
+  "projects": [
+    {
+      "title": "TypeScript Floor Plan Generator",
+      "link": "https://github.com/Ctechky/Floor-generator",
+      "year": "2025",
+      "description": "Systematic approach to floor plan optimization, formulating space utilization problems and developing data-driven solutions. Analyzes layout constraints and develops optimization algorithms to maximize space efficiency and workflow productivity.",
+      "image": "proj_1",
+      "status": "ongoing"
+    },
+    {
+      "title": "SC2002 Internship Placement System",
+      "link": "https://github.com/cky09002/SC2002-Internship-Placement-System",
+      "year": "2025",
+      "description": "Data-driven system for internship placement optimization. Formulates matching problems based on student skills and company requirements, using systematic analysis to improve placement efficiency and satisfaction rates.",
+      "image": "proj_2",
+      "status": "completed"
+    },
+    {
+      "title": "Image Segmentation - Pytorch Attention U-Net",
+      "link": "https://github.com/cky09002/Image-Segmentation-Pytorch-Attention-U-Net",
+      "year": "2025",
+      "description": "Systematic approach to image analysis and segmentation. Formulates computer vision problems for automated quality inspection and process monitoring, developing data-driven solutions for manufacturing applications.",
+      "image": "proj_3",
+      "status": "maintenance"
+    },
+    {
+      "title": "AIChE NTU Student Chapter Official Website",
+      "link": "https://aiche-ntu.github.io/",
+      "year": "2025",
+      "description": "Modern, responsive website for the American Institute of Chemical Engineers NTU Student Chapter showcasing events, member resources, and chapter activities. Built with HTML, CSS, and JavaScript for optimal performance and accessibility.",
+      "image": "aiche_2",
+      "status": "ongoing"
+    },
+    {
+      "title": "SC1003 Battleship Game (Pygame)",
+      "link": "https://github.com/cky09002/SC1003--Battleship-Pygame",
+      "year": "2025",
+      "description": "Interactive Battleship game built with Pygame featuring AI opponent, graphical interface, and strategic gameplay mechanics.",
+      "image": "proj_7",
+      "status": "completed"
+    },
+    {
+      "title": "Pandemic Simulation Game",
+      "link": "https://github.com/cky09002/Pandemic-Simulation-Game",
+      "year": "2025",
+      "description": "Epidemiological modeling and simulation system. Formulates disease spread dynamics problems using statistical analysis and simulation frameworks to understand and predict pandemic behavior.",
+      "image": "proj_8",
+      "status": "maintenance"
+    },
+    {
+      "title": "Covid-19 Data Analytics",
+      "link": "https://github.com/cky09002/Covid-19-data-analytics",
+      "year": "2025",
+      "description": "Comprehensive data analysis project examining COVID-19 trends and patterns. Formulates time-series forecasting problems using statistical modeling and data visualization to extract meaningful insights from pandemic data.",
+      "image": "proj_9",
+      "status": "completed"
+    },
+    {
+      "title": "TF2 Deep FloorPlan Recognition",
+      "link": "https://github.com/cky09002/TF2DeepFloorplan",
+      "year": "2025",
+      "description": "Deep learning system for architectural pattern recognition. Formulates computer vision problems using neural networks for automated floor plan analysis and facility management applications.",
+      "image": "proj_10",
+      "status": "archived"
+    },
+    {
+      "title": "OneArena 2024 Robotics Competition",
+      "link": "https://github.com/cky09002/OneArena-2024",
+      "year": "2024",
+      "description": "Robotic navigation system development for maze solving. Formulates pathfinding optimization problems using systematic algorithms and real-time decision making for autonomous robot control.",
+      "image": "proj_6",
+      "status": "completed"
+    },
+    {
+      "title": "URECA: Optimization of 3D SU-8 Microstructures using Mask-less Lithography",
+      "link": "https://github.com/cky09002",
+      "year": "2023-2024",
+      "description": "Process optimization research in semiconductor manufacturing. Formulates lithography parameter optimization problems using systematic data analysis to improve yield and reduce defects in wafer fabrication processes.",
+      "image": "proj_5",
+      "status": "completed"
+    }
+  ]
+}

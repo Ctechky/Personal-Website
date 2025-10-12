@@ -1,0 +1,41 @@
+{
+  "experience": [
+    {
+      "role": "Technical Services Specialist, Intern",
+      "company": "Keppel, Real Estate Division",
+      "period": "June 2025 - August 2025",
+      "website": "https://www.keppel.com",
+      "description": [
+        "Rebuilt cost databases using SQLite/MySQL with relational models.",
+        "Developed TypeScript floor plan generator producing top 10 optimized layouts; added AutoCAD DXF export.",
+        "Applied Python Library (NumPy, PyTorch) linear regression for cost prediction (90% accuracy).",
+        "Automated PDF data extraction with Power Apps AI Builder + Python."
+      ]
+    },
+    {
+      "role": "Quality Management Specialist, Intern",
+      "company": "Skyworks Solutions Inc. (Semiconductor Manufacturing)",
+      "period": "December 2024 - May 2025",
+      "website": "https://www.skyworksinc.com",
+      "description": [
+        "Extracted key insights from semiconductor production data using advanced analytics and machine learning (Random Forest) for defect root cause analysis.",
+        "Built Power BI dashboards with text analytics to detect 100 hidden mishandling cases in semiconductor manufacturing, reducing losses by $300K.",
+        "Automated scrap case reviews via Power Automate/Apps, achieving 95% closure rate for process engineering optimization.",
+        "Created Python + Azure data parser to extract key semiconductor event data from reports/emails for process improvement.",
+        "Optimized semiconductor manufacturing workflows with US IT team, cutting data entry error rate 15% and report time 20%."
+      ]
+    },
+    {
+      "role": "Research Assistant (URECA Program)",
+      "company": "Nanyang Technological University",
+      "period": "September 2023 - June 2024",
+      "website": "https://www.ntu.edu.sg",
+      "description": [
+        "Conducted semiconductor process engineering research on optimization of 3D SU-8 microstructures using mask-less lithography.",
+        "Extracted key process parameters and analyzed fabrication data to reduce microstructure size to 27 μm and print time by 30% via automation.",
+        "Improved wafer fabrication process efficiency by 20% through data-driven optimization; enhanced imaging resolution 4× with SEM and oil immersion microscopy.",
+        "Applied advanced data analytics and process optimization methods for semiconductor manufacturing, combining process engineering expertise with machine learning techniques."
+      ]
+    }
+  ]
+}

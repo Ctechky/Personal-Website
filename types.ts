@@ -12,6 +12,7 @@ export interface ExperienceType {
   role: string;
   company: string;
   period: string;
+  website?: string;
   description: string[];
 }
 
@@ -19,6 +20,7 @@ export interface LeadershipExperience {
   role: string;
   organization: string;
   period: string;
+  website?: string;
   description: string[];
 }
 
@@ -26,6 +28,7 @@ export interface EducationType {
     degree: string;
     institution: string;
     period: string;
+    website?: string;
     details: string[];
 }
 
