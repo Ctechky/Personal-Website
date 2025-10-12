@@ -1,5 +1,6 @@
 import React from 'react';
 import { GithubIcon, MailIcon, TelegramIcon, LinkedInIcon, DownloadIcon } from '../constants';
+import ProfileCard from './ProfileCard';
 
 interface HeaderProps {
     name: string;
@@ -8,18 +9,22 @@ interface HeaderProps {
     contact: {
         email: string;
         github: string;
+        githubSchool?: string;
         telegram?: string;
         linkedin?: string;
     };
     resumeUrl: string;
+    theme: 'light' | 'dark';
 }
 
-const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl }) => {
+const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl, theme }) => {
     const titleParts = title.split(' | ');
+    const downloadFileName = `${name.replace(/\s+/g, '_')}_Resume.pdf`;
     
     return (
         <div className="header-content">
             <div>
+                <ProfileCard theme={theme} />
                 <h1 className="header-name">{name}</h1>
                 <div className="header-title">
                     {titleParts.map((part, index) => (
@@ -28,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl 
                 </div>
 
                 <div className="header-actions">
-                    <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="download-resume-button">
+                    <a href={resumeUrl} download={downloadFileName} className="download-resume-button">
                         <DownloadIcon />
                         Download CV
                     </a>
@@ -38,9 +43,18 @@ const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl 
                                 <LinkedInIcon />
                             </a>
                         )}
-                        <a href={contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-                            <GithubIcon />
-                        </a>
+                        <div className="github-links">
+                            <a href={contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub Personal" className="github-link-with-label">
+                                <GithubIcon />
+                                <span className="github-label">Personal</span>
+                            </a>
+                            {contact.githubSchool && (
+                                <a href={contact.githubSchool} target="_blank" rel="noopener noreferrer" aria-label="GitHub School" className="github-link-with-label">
+                                    <GithubIcon />
+                                    <span className="github-label">School</span>
+                                </a>
+                            )}
+                        </div>
                         <a href={`mailto:${contact.email}`} aria-label="Email">
                             <MailIcon />
                         </a>

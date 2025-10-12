@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
+  
+  <!-- Resume/Document Icon -->
+  <rect x="30" y="20" width="40" height="55" rx="3" fill="#ffffff"/>
+  
+  <!-- Document Lines (representing text) -->
+  <line x1="36" y1="30" x2="64" y2="30" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="38" x2="60" y2="38" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="46" x2="64" y2="46" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="54" x2="58" y2="54" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="62" x2="64" y2="62" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Small decorative element (checkmark or star) -->
+  <circle cx="42" cy="30" r="2" fill="#10b981"/>
+</svg>
+

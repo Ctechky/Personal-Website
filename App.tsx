@@ -1,19 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Projects from './components/Projects';
 import Experience from './components/Experience';
 import Leadership from './components/Leadership';
 import Education from './components/Education';
 import Skills from './components/Skills';
+import Hobbies from './components/Hobbies';
+import ContactCTA from './components/ContactCTA';
 import Chatbot from './components/Chatbot';
-import DeploymentGuide from './components/DeploymentGuide';
 import TopNav from './components/TopNav';
 import { RESUME_DATA } from './constants';
 
 const App: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  // Initialize theme from localStorage, default to dark mode
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      setTheme('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
   return (
     <>
-      <TopNav />
+      <TopNav theme={theme} toggleTheme={toggleTheme} />
       <div className="container">
         <div className="main-layout">
           <header id="left-column">
@@ -23,6 +45,7 @@ const App: React.FC = () => {
               about={RESUME_DATA.about}
               contact={RESUME_DATA.contact}
               resumeUrl={RESUME_DATA.resumeUrl}
+              theme={theme}
             />
           </header>
           <main id="right-column">
@@ -46,9 +69,19 @@ const App: React.FC = () => {
               <h2 className="section-heading">Skills</h2>
               <Skills skillCategories={RESUME_DATA.skills} />
             </section>
-             <section id="deploy" className="content-section">
-              <h2 className="section-heading">How to Deploy</h2>
-              <DeploymentGuide />
+            {RESUME_DATA.hobbies && RESUME_DATA.hobbies.length > 0 && (
+              <section id="hobbies" className="content-section">
+                <h2 className="section-heading">Hobbies & Interests</h2>
+                <Hobbies hobbies={RESUME_DATA.hobbies} />
+              </section>
+            )}
+            <section id="contact" className="content-section">
+              <ContactCTA 
+                name={RESUME_DATA.name}
+                email={RESUME_DATA.contact.email}
+                linkedin={RESUME_DATA.contact.linkedin}
+                telegram={RESUME_DATA.contact.telegram}
+              />
             </section>
           </main>
         </div>

@@ -3,6 +3,9 @@ export interface Project {
   title: string;
   link?: string;
   year?: string;
+  description?: string;
+  image?: string;
+  status?: 'ongoing' | 'maintenance' | 'completed' | 'archived';
 }
 
 export interface ExperienceType {
@@ -31,12 +34,19 @@ export interface SkillCategory {
   skills: string[];
 }
 
+export interface Hobby {
+  name: string;
+  image?: string;
+  description?: string;
+}
+
 export interface ResumeData {
   name: string;
   title: string;
   contact: {
     email: string;
     github: string;
+    githubSchool?: string;
     telegram?: string;
     linkedin?: string;
   };
@@ -46,6 +56,7 @@ export interface ResumeData {
   leadership: LeadershipExperience[];
   education: EducationType[];
   skills: SkillCategory[];
+  hobbies?: Hobby[];
   resumeUrl: string;
 }
 
