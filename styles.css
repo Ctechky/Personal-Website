@@ -1320,6 +1320,29 @@ img.protected-image {
   border-top: 2px solid var(--surface-light);
 }
 
+/* Contact info in chatbot */
+.contact-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+  border: 1px solid var(--accent-primary);
+}
+
+.contact-link {
+  display: block;
+  color: var(--accent-primary);
+  text-decoration: none;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.contact-link:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .contact-cta-container {

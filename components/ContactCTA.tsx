@@ -59,7 +59,7 @@ const ContactCTA: React.FC<ContactCTAProps> = ({ name, email, linkedin, telegram
         </div>
         
         <p className="contact-cta-footer">
-          Available for part-time internships starting January 2025 • Full-time opportunities starting 2026 • Open to relocation
+          Available for part-time internships starting January 2026 • Full-time opportunities starting June 2026 • Open to relocation
         </p>
       </div>
     </div>
