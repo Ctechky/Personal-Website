@@ -196,7 +196,7 @@ const Chatbot: React.FC<{ resumeData: ResumeData; theme: 'light' | 'dark' }> = (
             console.log("Initializing Gemini AI...");
             try {
                 const genAI = new GoogleGenerativeAI(VITE_API_KEY);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
                 
                 const systemInstruction = createSystemInstruction(resumeData);
                 
