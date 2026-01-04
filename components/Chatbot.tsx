@@ -196,7 +196,7 @@ const Chatbot: React.FC<{ resumeData: ResumeData; theme: 'light' | 'dark' }> = (
             console.log("Initializing Gemini AI...");
             try {
                 const genAI = new GoogleGenerativeAI(VITE_API_KEY);
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                 
                 const systemInstruction = createSystemInstruction(resumeData);
                 
@@ -283,12 +283,30 @@ const Chatbot: React.FC<{ resumeData: ResumeData; theme: 'light' | 'dark' }> = (
             const followUps = generateFollowUpQuestions(messageText);
             setSuggestions(followUps);
             setShowSuggestions(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error sending message:', error);
+            
+            // Extract error message from the error object
+            let errorMessage = CONFIG.chatbot.errorMessage;
+            
+            if (error?.message) {
+                // Check for API key errors
+                if (error.message.includes('API key not valid') || error.message.includes('API_KEY_INVALID')) {
+                    errorMessage = `❌ **API Key Error**\n\nYour Gemini API key is not valid. Please check your .env file and ensure you have a valid API key from Google AI Studio.\n\nGet your API key: https://aistudio.google.com/app/apikey`;
+                } else if (error.message.includes('quota') || error.message.includes('429')) {
+                    errorMessage = `❌ **Quota Exceeded**\n\nYour API quota has been exceeded. Please check your Google AI Studio account.`;
+                } else if (error.message.includes('model') || error.message.includes('404')) {
+                    errorMessage = `❌ **Model Error**\n\nThe AI model is not available. Error: ${error.message}`;
+                } else {
+                    errorMessage = `❌ **Error**\n\n${error.message}\n\nPlease check your API key or try again later.`;
+                }
+            }
+            
             setMessages(prev => [...prev, { 
                 role: 'model', 
-                text: CONFIG.chatbot.errorMessage
+                text: errorMessage
             }]);
+            setShowSuggestions(true);
         } finally {
             setIsLoading(false);
         }

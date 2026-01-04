@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import Projects from './components/Projects';
 import Experience from './components/Experience';
@@ -86,7 +87,8 @@ const App: React.FC = () => {
           </main>
         </div>
       </div>
-            <Chatbot resumeData={RESUME_DATA} theme={theme} />
+      <Chatbot resumeData={RESUME_DATA} theme={theme} />
+      <Analytics />
     </>
   );
 };
