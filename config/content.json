@@ -1,0 +1,33 @@
+{
+  "about": "Year 4 Chemical Engineering student specializing in process and semiconductor engineering. Passionate about integrating data analytics and machine learning to realize scalable solutions in engineering applications.",
+  "sectionHeadings": {
+    "experience": "Experience",
+    "leadership": "Leadership",
+    "projects": "Projects",
+    "education": "Education",
+    "skills": "Skills",
+    "hobbies": "Hobbies & Interests",
+    "contact": "Let's Connect!"
+  },
+  "contact": {
+    "title": "Let's Connect!",
+    "subtitle": "Interested in discussing process optimization, data analytics, or opportunities? Let's connect!",
+    "buttons": {
+      "email": "Send Me an Email",
+      "linkedin": "Connect on LinkedIn",
+      "telegram": "Chat on Telegram"
+    },
+    "footer": "Available for full-time semiconductor engineering positions • Open to relocation"
+  },
+  "downloadButtons": {
+    "cv": "Resume",
+    "coverLetter": "Cover Letter"
+  },
+  "projectStatus": {
+    "ongoing": "In Progress",
+    "completed": "Completed",
+    "maintenance": "Maintenance",
+    "archived": "Archived"
+  }
+}
+

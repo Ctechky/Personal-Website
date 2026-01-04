@@ -1,40 +1,50 @@
 {
   "experience": [
     {
-      "role": "Technical Services Specialist, Intern",
-      "company": "Keppel, Real Estate Division",
+      "role": "Intern, Technology Risk Assurance",
+      "company": "Ernst & Young, Singapore",
+      "period": "January 2026 - 2026",
+      "website": "https://www.ey.com",
+      "description": [
+        "Analyze IT controls and processes to evaluate data integrity and system reliability.",
+        "Assist in testing automated controls and documenting findings for audit compliance.",
+        "Apply analytical frameworks to assess technology risks in client environments."
+      ]
+    },
+    {
+      "role": "Intern, Data Scientist",
+      "company": "MeetSocial Group, Shanghai",
+      "period": "December 2025 - January 2026",
+      "website": "https://www.meetsocial.com",
+      "description": [
+        "Engineered data pipelines migrating 20+ TB of data; optimized models to reduce query latency by 25% and accelerate analysis.",
+        "Optimized production data warehouse structuring 10+ source systems, improving ETL efficiency by 10%.",
+        "Developed automated scripts ingesting data from 5+ platforms to support analysis for 50+ marketing campaigns."
+      ]
+    },
+    {
+      "role": "Intern, Technical Service Engineer",
+      "company": "Keppel, Singapore",
       "period": "June 2025 - August 2025",
       "website": "https://www.keppel.com",
       "description": [
-        "Rebuilt cost databases using SQLite/MySQL with relational models.",
-        "Developed TypeScript floor plan generator producing top 10 optimized layouts; added AutoCAD DXF export.",
-        "Applied Python Library (NumPy, PyTorch) linear regression for cost prediction (90% accuracy).",
-        "Automated PDF data extraction with Power Apps AI Builder + Python."
+        "Automated project costing by designing and implementing a relational database (SQLite/MySQL) to replace error-prone manual Excel cost tracking.",
+        "Built a TypeScript-based floor plan optimizer (Top 10 layouts) with automated DXF export for AutoCAD.",
+        "Applied regression modeling for cost prediction (90% accuracy) to support data-driven decision making.",
+        "Automated PDF data extraction with Power Apps AI Builder + Python + OCR."
       ]
     },
     {
-      "role": "Quality Management Specialist, Intern",
-      "company": "Skyworks Solutions Inc. (Semiconductor Manufacturing)",
+      "role": "Intern, Quality Engineer",
+      "company": "Skyworks Solutions Inc., Singapore",
       "period": "December 2024 - May 2025",
       "website": "https://www.skyworksinc.com",
       "description": [
-        "Extracted key insights from semiconductor production data using advanced analytics and machine learning (Random Forest) for defect root cause analysis.",
-        "Built Power BI dashboards with text analytics to detect 100 hidden mishandling cases in semiconductor manufacturing, reducing losses by $300K.",
-        "Automated scrap case reviews via Power Automate/Apps, achieving 95% closure rate for process engineering optimization.",
-        "Created Python + Azure data parser to extract key semiconductor event data from reports/emails for process improvement.",
-        "Optimized semiconductor manufacturing workflows with US IT team, cutting data entry error rate 15% and report time 20%."
-      ]
-    },
-    {
-      "role": "Research Assistant (URECA Program)",
-      "company": "Nanyang Technological University",
-      "period": "September 2023 - June 2024",
-      "website": "https://www.ntu.edu.sg",
-      "description": [
-        "Conducted semiconductor process engineering research on optimization of 3D SU-8 microstructures using mask-less lithography.",
-        "Extracted key process parameters and analyzed fabrication data to reduce microstructure size to 27 μm and print time by 30% via automation.",
-        "Improved wafer fabrication process efficiency by 20% through data-driven optimization; enhanced imaging resolution 4× with SEM and oil immersion microscopy.",
-        "Applied advanced data analytics and process optimization methods for semiconductor manufacturing, combining process engineering expertise with machine learning techniques."
+        "Automated scrap case review workflows using Power Automate/Apps, achieving a 95% automated closure rate for data-driven decision-making.",
+        "Developed a Random Forest model to predict wafer mishandling, achieving 92% detection accuracy and increasing flagged incidents by 15%.",
+        "Built Power BI dashboards with text analytics to identify 100+ hidden mishandling cases, reducing 300k losses.",
+        "Created a Python parser to extract and structure key event data from reports and emails for analysis.",
+        "Optimized the internal wafer loss reporting system, reducing manual error rates by 15%."
       ]
     }
   ]

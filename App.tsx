@@ -10,19 +10,20 @@ import ContactCTA from './components/ContactCTA';
 import Chatbot from './components/Chatbot';
 import TopNav from './components/TopNav';
 import { RESUME_DATA } from './constants';
+import { CONFIG } from './config';
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-  // Initialize theme from localStorage, default to dark mode
+  // Initialize theme from localStorage, default to light mode
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
-      setTheme('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
+      setTheme('light');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
@@ -49,35 +50,34 @@ const App: React.FC = () => {
             />
           </header>
           <main id="right-column">
-            <section id="experience" className="content-section">
-              <h2 className="section-heading">Experience</h2>
-              <Experience experiences={RESUME_DATA.experience} />
-            </section>
-             <section id="leadership" className="content-section">
-              <h2 className="section-heading">Leadership</h2>
-              <Leadership leadership={RESUME_DATA.leadership} />
-            </section>
-            <section id="projects" className="content-section">
-               <h2 className="section-heading">Projects</h2>
-              <Projects projects={RESUME_DATA.projects} />
-            </section>
             <section id="education" className="content-section">
-              <h2 className="section-heading">Education</h2>
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.education}</h2>
               <Education education={RESUME_DATA.education} />
             </section>
+            <section id="experience" className="content-section">
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.experience}</h2>
+              <Experience experiences={RESUME_DATA.experience} />
+            </section>
+            <section id="projects" className="content-section">
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.projects}</h2>
+              <Projects projects={RESUME_DATA.projects} />
+            </section>
+            <section id="leadership" className="content-section">
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.leadership}</h2>
+              <Leadership leadership={RESUME_DATA.leadership} />
+            </section>
             <section id="skills" className="content-section">
-              <h2 className="section-heading">Skills</h2>
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.skills}</h2>
               <Skills skillCategories={RESUME_DATA.skills} />
             </section>
             {RESUME_DATA.hobbies && RESUME_DATA.hobbies.length > 0 && (
               <section id="hobbies" className="content-section">
-                <h2 className="section-heading">Hobbies & Interests</h2>
+                <h2 className="section-heading">{CONFIG.content.sectionHeadings.hobbies}</h2>
                 <Hobbies hobbies={RESUME_DATA.hobbies} />
               </section>
             )}
             <section id="contact" className="content-section">
               <ContactCTA 
-                name={RESUME_DATA.name}
                 email={RESUME_DATA.contact.email}
                 linkedin={RESUME_DATA.contact.linkedin}
                 telegram={RESUME_DATA.contact.telegram}

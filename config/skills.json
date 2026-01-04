@@ -1,32 +1,69 @@
 {
   "skills": [
     {
-      "title": "Process Engineering",
-      "skills": ["Semiconductor Manufacturing", "Wafer Fabrication", "Lithography Process Optimization", "Quality Management Systems", "Process Control", "Root Cause Analysis", "SEM Microscopy"]
-    },
-    {
-      "title": "Data Analytics & ML",
-      "skills": ["Predictive Analytics", "Machine Learning", "Statistical Analysis", "Data Mining", "Text Analytics", "PyTorch", "Scikit-Learn", "Power BI", "Python", "SQL"]
-    },
-    {
-      "title": "Semiconductor & Energy Tools",
-      "skills": ["AVEVA Process Simulation", "Aspen HYSYS", "DWSIM", "SEM Microscopy", "Process Automation", "Quality Control Systems"]
-    },
-    {
-      "title": "Programming & Databases",
-      "skills": ["Python", "SQL", "MATLAB", "JavaScript", "TypeScript", "Database Design", "SQLite", "MySQL", "Django ORM"]
-    },
-    {
-      "title": "Automation & Platforms",
-      "skills": ["Microsoft Power Platform", "Power Automate", "Power Apps", "Azure", "Data Visualization", "Dashboard Development"]
-    },
-    {
       "title": "Languages",
-      "skills": ["English (Proficient)", "Chinese (Proficient)", "Malay (Proficient)", "Spanish (Conversant)"]
+      "skills": [
+        { "name": "English", "level": 4 },
+        { "name": "Chinese", "level": 4 },
+        { "name": "Malay", "level": 4 },
+        { "name": "Spanish", "level": 3 }
+      ]
+    },
+    {
+      "title": "Programming & Scripting",
+      "skills": [
+        { "name": "Python", "level": 4 },
+        { "name": "MATLAB", "level": 3 },
+        { "name": "Java", "level": 3 },
+        { "name": "C", "level": 3 },
+        { "name": "JavaScript", "level": 3 },
+        { "name": "Google Apps Script", "level": 3 },
+        { "name": ".NET", "level": 3 },
+        { "name": "React", "level": 3 },
+        { "name": "SQL", "level": 4 }
+      ]
+    },
+    {
+      "title": "Data Analytics & Visualization",
+      "skills": [
+        { "name": "Power BI", "level": 4 },
+        { "name": "Microsoft Power Platform", "level": 4 },
+        { "name": "Excel (Advanced)", "level": 4 },
+        { "name": "DAX / M Language", "level": 4 },
+        { "name": "Jupyter Notebook", "level": 4 }
+      ]
+    },
+    {
+      "title": "Simulation & Engineering Tools",
+      "skills": [
+        { "name": "Aspen HYSYS", "level": 3 },
+        { "name": "DWSIM", "level": 3 },
+        { "name": "AVEVA", "level": 3 },
+        { "name": "AutoCAD", "level": 3 }
+      ]
+    },
+    {
+      "title": "Hardware & Automation",
+      "skills": [
+        { "name": "Arduino", "level": 3 },
+        { "name": "Verilog", "level": 3 }
+      ]
+    },
+    {
+      "title": "Semiconductor Related Skills",
+      "skills": [
+        { "name": "Wafer Fabrication", "level": 4 },
+        { "name": "SEM Microscopy", "level": 3 },
+        { "name": "Chemicals and Heat Management", "level": 4 },
+        { "name": "8D", "level": 3 },
+        { "name": "PLD", "level": 3 }
+      ]
     },
     {
       "title": "Awards & Certifications",
-      "skills": ["Kuok Foundation Scholarship", "IMONST Bronze Award (2018)", "IChONST Honourable Mention (2018)", "Python Certifications (Coursera)"]
+      "skills": [
+        { "name": "Kuok Foundation Full Scholarship Recipient (2022-2026)", "level": 4 }
+      ]
     }
   ]
 }

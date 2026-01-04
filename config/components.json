@@ -1,0 +1,46 @@
+{
+  "projects": {
+    "filters": {
+      "all": "All",
+      "ongoing": "In Progress",
+      "completed": "Completed",
+      "maintenance": "Maintenance"
+    },
+    "noResults": "No projects found for this filter."
+  },
+  "skills": {
+    "levels": {
+      "1": { "label": "Beginner", "class": "beginner", "width": 40 },
+      "2": { "label": "Intermediate", "class": "intermediate", "width": 60 },
+      "3": { "label": "Advanced", "class": "advanced", "width": 80 },
+      "4": { "label": "Expert", "class": "expert", "width": 100 }
+    },
+    "awardKeywords": ["award", "certification"]
+  },
+  "profileCard": {
+    "altText": {
+      "profile": "Profile",
+      "chill": "Chill mode"
+    },
+    "hints": {
+      "flip": "Click to flip",
+      "flipBack": "Click to flip back"
+    }
+  },
+  "header": {
+    "pdf": {
+      "boldPatterns": [
+        "27 μm", "27um", "27 um", "$300K", "20%", "95%",
+        "URECA", "Skyworks Solutions Inc.", "Nanyang Technological University",
+        "semiconductor process engineering", "lithography processes", 
+        "defect analysis", "process optimization",
+        "Python", "SQL", "MATLAB", "Power BI", "SEM microscopy",
+        "Random Forest", "PyTorch", "Scikit-Learn",
+        "photoresist", "etching", "wafer fabrication"
+      ],
+      "greetingKeywords": ["Dear"],
+      "closingKeywords": ["Sincerely,"],
+      "thankYouKeywords": ["Hiring Manager", "Thank you"]
+    }
+  }
+}

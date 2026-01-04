@@ -1,3 +1,4 @@
+// @refresh reset
 import type { ResumeData } from './types';
 import { CONFIG } from './config';
 
@@ -49,12 +50,12 @@ export const RESUME_DATA: ResumeData = {
     telegram: CONFIG.personal.telegram,
     linkedin: CONFIG.personal.linkedin,
   },
-  about: "Year 4 Chemical Engineering student at Nanyang Technological University (NTU), specializing in applying Machine Learning & Data Analytics to improve manufacturing processes. President of AIChE NTU Student Chapter and Vice President of Machine Learning & Data Analytics Club. Kuok Foundation Scholar experienced in analyzing existing processes, identifying inefficiencies through data-driven approaches, and formulating optimization strategies. Proven track record in semiconductor process optimization (URECA lithography research) and developing analytics solutions for process improvement. Seeking Process Engineer, Data Analyst, or Machine Learning Engineer positions to leverage technical expertise for continuous process enhancement in semiconductor or sustainability-focused industries.",
+  about: CONFIG.content.about,
   resumeUrl: CONFIG.personal.resumeUrl,
   projects: CONFIG.projects,
   experience: CONFIG.experience,
   leadership: CONFIG.leadership,
   education: CONFIG.education,
-  skills: CONFIG.skills,
+  skills: CONFIG.skills as any,
   hobbies: CONFIG.hobbies,
 };

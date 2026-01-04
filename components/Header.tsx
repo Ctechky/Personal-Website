@@ -1,25 +1,27 @@
 import React from 'react';
 import { GithubIcon, MailIcon, TelegramIcon, LinkedInIcon, DownloadIcon } from '../constants';
+import { CONFIG } from '../config';
 import ProfileCard from './ProfileCard';
 
 interface HeaderProps {
-    name: string;
-    title: string;
-    about: string;
-    contact: {
-        email: string;
-        github: string;
-        githubSchool?: string;
-        telegram?: string;
-        linkedin?: string;
-    };
-    resumeUrl: string;
-    theme: 'light' | 'dark';
+  name: string;
+  title: string;
+  about: string;
+  contact: {
+    email: string;
+    github: string;
+    githubSchool?: string;
+    telegram?: string;
+    linkedin?: string;
+  };
+  resumeUrl: string;
+  theme: 'light' | 'dark';
 }
 
 const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl, theme }) => {
-    const titleParts = title.split(' | ');
-    const downloadFileName = `${name.replace(/\s+/g, '_')}_Resume.pdf`;
+  const titleParts = title.split(' | ');
+  const downloadFileName = `${name.replace(/\s+/g, '_')}_Resume.pdf`;
+  const downloadButtons = CONFIG.content.downloadButtons;
     
     return (
         <div className="header-content">
@@ -32,11 +34,17 @@ const Header: React.FC<HeaderProps> = ({ name, title, about, contact, resumeUrl,
                     ))}
                 </div>
 
-                <div className="header-actions">
-                    <a href={resumeUrl} download={downloadFileName} className="download-resume-button">
-                        <DownloadIcon />
-                        Download CV
-                    </a>
+        <div className="header-actions">
+          <div className="download-buttons">
+            <a href={resumeUrl} download={downloadFileName} className="download-resume-button">
+              <DownloadIcon />
+              {downloadButtons.cv}
+            </a>
+            <a href="/General Cover letter.pdf" download="Chong_Kok_Yang_Cover_Letter.pdf" className="download-resume-button">
+              <DownloadIcon />
+              {downloadButtons.coverLetter}
+            </a>
+          </div>
                     <div className="social-links">
                         {contact.linkedin && (
                             <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">

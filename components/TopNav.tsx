@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 const navItems = [
-    { href: '#experience', label: 'Experience' },
-    { href: '#leadership', label: 'Leadership' },
-    { href: '#projects', label: 'Projects' },
     { href: '#education', label: 'Education' },
+    { href: '#experience', label: 'Experience' },
+    { href: '#projects', label: 'Projects' },
+    { href: '#leadership', label: 'Leadership' },
     { href: '#skills', label: 'Skills' },
     { href: '#hobbies', label: 'Hobbies' },
     { href: '#contact', label: 'Contact' },

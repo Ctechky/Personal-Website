@@ -2,7 +2,7 @@
 export interface Project {
   title: string;
   link?: string;
-  year?: string;
+  period?: string;
   description?: string;
   image?: string;
   status?: 'ongoing' | 'maintenance' | 'completed' | 'archived';
@@ -32,9 +32,14 @@ export interface EducationType {
     details: string[];
 }
 
+export interface Skill {
+  name: string;
+  level: 1 | 2 | 3 | 4; // 1: Beginner, 2: Intermediate, 3: Advanced, 4: Expert
+}
+
 export interface SkillCategory {
   title: string;
-  skills: string[];
+  skills: Skill[];
 }
 
 export interface Hobby {
@@ -54,6 +59,7 @@ export interface ResumeData {
     linkedin?: string;
   };
   about: string;
+  coverLetter?: string[];
   projects: Project[];
   experience: ExperienceType[];
   leadership: LeadershipExperience[];
