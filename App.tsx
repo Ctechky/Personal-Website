@@ -14,17 +14,17 @@ import { RESUME_DATA } from './constants';
 import { CONFIG } from './config';
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
-  // Initialize theme from localStorage, default to light mode
+  // Initialize theme from localStorage, default to dark mode
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
-      setTheme('light');
-      document.documentElement.setAttribute('data-theme', 'light');
+      setTheme('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
   }, []);
 
