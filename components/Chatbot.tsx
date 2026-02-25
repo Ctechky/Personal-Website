@@ -30,17 +30,16 @@ const formatChatbotResponse = (text: string): string => {
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, (_match, label, url) => {
         try {
             const parsed = new URL(url);
-            // Same-origin link with only a hash — scroll within the page
             if (parsed.origin === currentOrigin && parsed.hash) {
-                const id = parsed.hash.slice(1); // e.g. "skills"
+                const id = parsed.hash.slice(1);
                 return `<a href="${parsed.hash}" onclick="event.preventDefault();window.__chatbotScrollTo('${id}');" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
             }
         } catch {}
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
     });
-    // 2. Markdown links [label](/#section) or [label](/path) — same-page navigation
+    // 2. Markdown links [label](/#section) or [label](/path)
     text = text.replace(/\[([^\]]+)\]\((\/[^)]*)\)/g, (_match, label, path) => {
-        const hash = path.startsWith('/#') ? path.slice(1) : path; // "#section" or "/path"
+        const hash = path.startsWith('/#') ? path.slice(1) : path;
         if (hash.startsWith('#')) {
             const id = hash.slice(1);
             return `<a href="${hash}" onclick="event.preventDefault();window.__chatbotScrollTo('${id}');" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
@@ -51,7 +50,7 @@ const formatChatbotResponse = (text: string): string => {
     text = text.replace(/(?<!href=")(https?:\/\/[^\s<"]+\.pdf)/gi,
         `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">Download (PDF)</a>`);
     // 4. Email addresses
-    text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+    text = text.replace(/(?<!href="mailto:)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
         `<a href="mailto:$1" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
     // 5. LinkedIn URLs
     text = text.replace(/(?<!href=")(https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+)/g,
@@ -62,47 +61,61 @@ const formatChatbotResponse = (text: string): string => {
     // 7. GitHub URLs
     text = text.replace(/(?<!href=")(https:\/\/github\.com\/[^\s<"]+)/g,
         `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
-    // Convert **bold** markdown to HTML
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert bullet points with proper spacing
-    // Replace • bullets with HTML list items
+
+    // ── Inline formatting ─────────────────────────────────────────────────
+    // Bold: **text** or __text__
+    text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_ (not touching already-replaced bold)
+    text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+    text = text.replace(/(?<!_)_(?!_)([^_\n]+)(?<!_)_(?!_)/g, '<em>$1</em>');
+    // Inline code: `code`
+    text = text.replace(/`([^`\n]+)`/g, '<code style="background:rgba(99,102,241,0.12);padding:1px 5px;border-radius:4px;font-size:0.9em;">$1</code>');
+
+    // ── Lists ─────────────────────────────────────────────────────────────
+    // Normalise all bullet styles (•, -, *) to a single marker before processing
     const lines = text.split('\n');
-    let inList = false;
+    let inUl = false;
+    let inOl = false;
+    let olCounter = 0;
+
     const processedLines = lines.map(line => {
-        const trimmedLine = line.trim();
-        
-        // Check if line starts with bullet
-        if (trimmedLine.startsWith('•')) {
-            const content = trimmedLine.substring(1).trim();
-            if (!inList) {
-                inList = true;
-                return `<ul><li>${content}</li>`;
-            }
+        const trimmed = line.trim();
+
+        // Unordered: •, -, * at line start
+        const ulMatch = trimmed.match(/^([•\-\*])\s+(.+)/);
+        if (ulMatch) {
+            const content = ulMatch[2];
+            if (inOl) { inOl = false; olCounter = 0; const close = `</ol><li>${content}</li>`; inUl = true; return close; }
+            if (!inUl) { inUl = true; return `<ul><li>${content}</li>`; }
             return `<li>${content}</li>`;
-        } else if (inList && trimmedLine !== '') {
-            // Close list if we hit non-bullet content
-            inList = false;
-            return `</ul>${line}`;
-        } else if (inList && trimmedLine === '') {
-            // Close list on empty line
-            inList = false;
-            return '</ul><br>';
         }
-        
+
+        // Ordered: 1. 2. etc.
+        const olMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+        if (olMatch) {
+            const content = olMatch[2];
+            if (inUl) { inUl = false; const close = `</ul><li>${content}</li>`; inOl = true; olCounter = 1; return close; }
+            if (!inOl) { inOl = true; olCounter = 1; return `<ol><li>${content}</li>`; }
+            olCounter++;
+            return `<li>${content}</li>`;
+        }
+
+        // Close open lists on empty line or normal content
+        if (inUl) { inUl = false; return trimmed === '' ? '</ul>' : `</ul>${line}`; }
+        if (inOl) { inOl = false; olCounter = 0; return trimmed === '' ? '</ol>' : `</ol>${line}`; }
+
         return line;
     });
-    
-    // Close any remaining open list
-    if (inList) {
-        processedLines.push('</ul>');
-    }
-    
+
+    if (inUl) processedLines.push('</ul>');
+    if (inOl) processedLines.push('</ol>');
+
     text = processedLines.join('\n');
-    
-    // Convert line breaks to <br> for better spacing (but not inside lists)
-    text = text.replace(/\n(?!<li>|<ul>|<\/ul>)/g, '<br>');
-    
+
+    // Convert remaining newlines to <br>, skip inside list tags
+    text = text.replace(/\n(?!<\/?(li|ul|ol))/g, '<br>');
+
     return text;
 };
 

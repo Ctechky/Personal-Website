@@ -1418,6 +1418,39 @@ img.protected-image {
   color: #60a5fa !important;
 }
 
+/* Markdown-rendered content inside chatbot messages */
+.message-content strong {
+  font-weight: 700;
+}
+
+.message-content em {
+  font-style: italic;
+}
+
+.message-content code {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.88em;
+}
+
+.message-content ul,
+.message-content ol {
+  margin: 6px 0 6px 1.2em;
+  padding: 0;
+}
+
+.message-content li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.message-content ul li {
+  list-style-type: disc;
+}
+
+.message-content ol li {
+  list-style-type: decimal;
+}
+
 .dark-theme .message-content a:hover,
 .message-content a.dark-theme:hover {
   color: #93c5fd !important;
