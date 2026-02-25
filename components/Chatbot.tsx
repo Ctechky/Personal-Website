@@ -1,24 +1,67 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { ResumeData, ChatMessage } from '../types';
 import { CONFIG } from '../config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const VITE_API_KEY = import.meta.env.VITE_API_KEY;
 
-// Import Gemini directly (works in both environments)
-import { GoogleGenerativeAI } from '@google/generative-ai';
+// Model cascade: try primary first, fall back if unavailable
+const MODEL_PRIMARY  = 'gemini-2.5-flash';
+const MODEL_FALLBACK = 'gemini-2.5-flash-lite';
+
+// Nav-aware smooth scroll — accounts for the sticky TopNav height.
+// Exposed on window so inline onclick strings in dangerouslySetInnerHTML can call it.
+if (typeof window !== 'undefined') {
+    (window as any).__chatbotScrollTo = (id: string) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const navEl = document.querySelector('.top-nav') as HTMLElement | null;
+        const navHeight = navEl ? navEl.offsetHeight : 80;
+        const top = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+        window.scrollTo({ top, behavior: 'smooth' });
+    };
+}
 
 // Function to convert markdown-like formatting to HTML
 const formatChatbotResponse = (text: string): string => {
-    // First, process contact links
-    text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, 
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
+    // 1. Markdown links [label](url) — detect same-origin anchor vs external
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, (_match, label, url) => {
+        try {
+            const parsed = new URL(url);
+            // Same-origin link with only a hash — scroll within the page
+            if (parsed.origin === currentOrigin && parsed.hash) {
+                const id = parsed.hash.slice(1); // e.g. "skills"
+                return `<a href="${parsed.hash}" onclick="event.preventDefault();window.__chatbotScrollTo('${id}');" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
+            }
+        } catch {}
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
+    });
+    // 2. Markdown links [label](/#section) or [label](/path) — same-page navigation
+    text = text.replace(/\[([^\]]+)\]\((\/[^)]*)\)/g, (_match, label, path) => {
+        const hash = path.startsWith('/#') ? path.slice(1) : path; // "#section" or "/path"
+        if (hash.startsWith('#')) {
+            const id = hash.slice(1);
+            return `<a href="${hash}" onclick="event.preventDefault();window.__chatbotScrollTo('${id}');" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
+        }
+        return `<a href="${path}" style="color: #3b82f6; text-decoration: underline;">${label}</a>`;
+    });
+    // 3. Bare PDF links not already inside an anchor
+    text = text.replace(/(?<!href=")(https?:\/\/[^\s<"]+\.pdf)/gi,
+        `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">Download (PDF)</a>`);
+    // 4. Email addresses
+    text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
         `<a href="mailto:$1" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
-    
-    text = text.replace(/(https:\/\/www\.linkedin\.com\/in\/[a-zA-Z0-9-]+)/g, 
+    // 5. LinkedIn URLs
+    text = text.replace(/(?<!href=")(https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+)/g,
         `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
-    
-    text = text.replace(/(https:\/\/t\.me\/[a-zA-Z0-9_]+)/g, 
+    // 6. Telegram URLs
+    text = text.replace(/(?<!href=")(https:\/\/t\.me\/[a-zA-Z0-9_]+)/g,
         `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
-    
+    // 7. GitHub URLs
+    text = text.replace(/(?<!href=")(https:\/\/github\.com\/[^\s<"]+)/g,
+        `<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">$1</a>`);
     // Convert **bold** markdown to HTML
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     
@@ -64,348 +107,398 @@ const formatChatbotResponse = (text: string): string => {
 };
 
 const createSystemInstruction = (resume: ResumeData): string => {
-    const chatbotConfig = CONFIG.chatbot;
-    
-    return `${chatbotConfig.personality.description.replace('{name}', resume.name)}
+    const cfg = CONFIG.chatbot;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // Full absolute URLs — used directly in markdown links the AI produces
+    const resumeFullUrl      = `${origin}${resume.resumeUrl}`;
+    const coverLetterFullUrl = `${origin}/General%20Cover%20letter.pdf`;
+
+    // ── Education ──────────────────────────────────────────────────────────
+    const educationSection = resume.education.map(e =>
+        `  • ${e.degree} — ${e.institution} (${e.period})\n` +
+        e.details.map(d => `    - ${d}`).join('\n')
+    ).join('\n');
+
+    // ── Experience ─────────────────────────────────────────────────────────
+    const experienceSection = resume.experience.map(e =>
+        `  • ${e.role} @ ${e.company} (${e.period})\n` +
+        e.description.map(d => `    - ${d}`).join('\n')
+    ).join('\n');
+
+    // ── Leadership ─────────────────────────────────────────────────────────
+    const leadershipSection = resume.leadership.map(l =>
+        `  • ${l.role} @ ${l.organization} (${l.period})\n` +
+        l.description.map(d => `    - ${d}`).join('\n')
+    ).join('\n');
+
+    // ── Projects ───────────────────────────────────────────────────────────
+    const projectsSection = resume.projects.map(p =>
+        `  • ${p.title}${p.period ? ` (${p.period})` : ''}${p.status ? ` [${p.status}]` : ''}\n` +
+        (p.description ? `    ${p.description}` : '') +
+        (p.link ? `\n    Link: ${p.link}` : '')
+    ).join('\n');
+
+    // ── Skills ─────────────────────────────────────────────────────────────
+    const skillsSection = resume.skills.map(cat =>
+        `  ${cat.title}:\n` +
+        cat.skills.map(s => `    - ${s.name} (level ${s.level}/4)`).join('\n')
+    ).join('\n');
+
+    // ── Hobbies ────────────────────────────────────────────────────────────
+    const hobbiesSection = resume.hobbies
+        ? resume.hobbies.map(h => `  • ${h.name}${h.description ? `: ${h.description}` : ''}`).join('\n')
+        : '  Not specified';
+
+    // ── Website sections with full anchor links ────────────────────────────
+    const websiteSections = Object.entries(CONFIG.content.sectionHeadings)
+        .map(([id, label]) => `  • [${label}](${origin}/#${id})`)
+        .join('\n');
+
+    return `${cfg.personality.description.replace('{name}', resume.name)}
 
 PERSONALITY & TONE:
-${chatbotConfig.personality.traits.map(trait => `- ${trait}`).join('\n')}
+${cfg.personality.traits.map(t => `- ${t}`).join('\n')}
 
-CRITICAL RESPONSE FORMAT RULES (MUST FOLLOW EXACTLY):
-${chatbotConfig.formatting.rules.map((rule, index) => `${index + 1}. ${rule}`).join('\n')}
+RESPONSE FORMAT RULES:
+${cfg.formatting.rules.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
-MANDATORY FORMAT STRUCTURE:
-${chatbotConfig.formatting.structure.categoryTitle}
+CORE FOCUS: ${cfg.focus}
 
-${chatbotConfig.formatting.structure.bulletPoint}
-• Second bullet point with metrics/details
-• Third bullet point if needed
+═══════════════════════════════════════════════
+COMPLETE WEBSITE & PORTFOLIO KNOWLEDGE BASE
+═══════════════════════════════════════════════
 
-${chatbotConfig.formatting.structure.nextCategory}
+ABOUT ME:
+${resume.about}
 
-• Bullet point with information
-• Another bullet point
+CONTACT:
+  Email:    ${resume.contact.email}
+  LinkedIn: ${resume.contact.linkedin || 'Not available'}
+  GitHub:   ${resume.contact.github}
+  Telegram: ${resume.contact.telegram || 'Not available'}
 
-EXAMPLE - Skills Question (with enthusiastic tone):
-${chatbotConfig.examples.skills.title}
+DOWNLOADS:
+  Resume:       ${resumeFullUrl}
+  Cover Letter: ${coverLetterFullUrl}
 
-${chatbotConfig.examples.skills.points.map(point => `• ${point}`).join('\n')}
+DOWNLOAD INSTRUCTIONS (CRITICAL):
+- When someone asks for resume/CV: respond with "[Download my resume](${resumeFullUrl})"
+- When someone asks for cover letter: respond with "[Download my cover letter](${coverLetterFullUrl})"
+- If they ask for both: give both links on separate lines
+- NEVER show raw file paths — always use markdown link syntax [label](url)
 
-**💡 Data Analytics & Machine Learning Innovation**
+WEBSITE SECTIONS — when mentioning any section, link to it using markdown:
+${websiteSections}
+Example: instead of "check my experience section" say "[check my experience](${origin}/#experience)"
 
-• Revolutionary Predictive Analytics & ML (PyTorch, Scikit-Learn)
-• Advanced Statistical Analysis, Data Mining & Intelligent Text Analytics
-• Dynamic Power BI Dashboards & Real-time Data Visualization
-• Automated Process Optimization & Smart Manufacturing Solutions
+── EDUCATION ──────────────────────────────────
+${educationSection}
 
-**⚡ Programming & Advanced Tools**
+── WORK EXPERIENCE ────────────────────────────
+${experienceSection}
 
-• Python, SQL, MATLAB, JavaScript, TypeScript
-• SQLite, MySQL, Django ORM
-• Microsoft Power Platform (Automate, Apps)
+── LEADERSHIP & ACTIVITIES ────────────────────
+${leadershipSection}
 
-EXAMPLE - Experience Question (with passionate tone):
-${chatbotConfig.examples.experience.title}
+── PROJECTS ───────────────────────────────────
+${projectsSection}
 
-${chatbotConfig.examples.experience.points.map(point => `• ${point}`).join('\n')}
+── SKILLS ─────────────────────────────────────
+${skillsSection}
 
-**🎯 Key Innovation Drivers**
+── HOBBIES & INTERESTS ────────────────────────
+${hobbiesSection}
 
-• Advanced Analytics, Machine Learning, Power BI
-• Python, Azure, Process Automation
+═══════════════════════════════════════════════
 
-SEMICONDUCTOR FOCUS: ${chatbotConfig.focus}
+CONTACT REDIRECT (use when question is out of scope):
+${cfg.contactRedirect}
+  • Email: ${resume.contact.email}
+  • LinkedIn: ${resume.contact.linkedin || 'Not available'}
+  • Telegram: ${resume.contact.telegram || 'Not available'}
 
-IMPORTANT: If a question is outside the scope of the provided resume data, enthusiastically redirect to semiconductor-related topics and suggest they contact ${resume.name} directly:
+EXAMPLE RESPONSE — Skills:
+${cfg.examples.skills.title}
+${cfg.examples.skills.points.map(p => `• ${p}`).join('\n')}
 
-${chatbotConfig.contactRedirect}
-
-• Email: ${resume.contact.email}
-• LinkedIn: ${resume.contact.linkedin || 'Not available'}
-• Telegram: ${resume.contact.telegram || 'Not available'}
-
-Here is the resume data:
-${JSON.stringify(resume, null, 2)}`;
+EXAMPLE RESPONSE — Experience:
+${cfg.examples.experience.title}
+${cfg.examples.experience.points.map(p => `• ${p}`).join('\n')}`;
 };
 
-// Initial suggested questions
 const INITIAL_SUGGESTIONS = CONFIG.chatbot.initialQuestions;
 
-// Function to generate dynamic follow-up questions based on conversation context
+// ─── Follow-up question router ────────────────────────────────────────────────
+
 const generateFollowUpQuestions = (lastUserMessage: string): string[] => {
     const msg = lastUserMessage.toLowerCase();
-    const followUps = CONFIG.chatbot.followUpQuestions;
-    
-    // Semiconductor/Manufacturing related
-    if (msg.includes('semiconductor') || msg.includes('skyworks') || msg.includes('manufacturing')) {
-        return followUps.semiconductor;
-    }
-    
-    // Skills related
-    if (msg.includes('skill') || msg.includes('technical') || msg.includes('programming')) {
-        return followUps.skills;
-    }
-    
-    // Projects related
-    if (msg.includes('project') || msg.includes('github') || msg.includes('built')) {
-        return followUps.projects;
-    }
-    
-    // Leadership related
-    if (msg.includes('leadership') || msg.includes('president') || msg.includes('aiche')) {
-        return followUps.leadership;
-    }
-    
-    // Education related
-    if (msg.includes('education') || msg.includes('ntu') || msg.includes('study') || msg.includes('degree')) {
-        return followUps.education;
-    }
-    
-    // Experience related
-    if (msg.includes('experience') || msg.includes('internship') || msg.includes('work') || msg.includes('keppel')) {
-        return followUps.experience;
-    }
-    
-    // Default follow-ups for general questions
-    return followUps.default;
+    const fu  = CONFIG.chatbot.followUpQuestions;
+    if (msg.includes('semiconductor') || msg.includes('skyworks') || msg.includes('manufacturing')) return fu.semiconductor;
+    if (msg.includes('skill')         || msg.includes('technical')  || msg.includes('programming'))  return fu.skills;
+    if (msg.includes('project')       || msg.includes('github')     || msg.includes('built'))        return fu.projects;
+    if (msg.includes('leadership')    || msg.includes('president')  || msg.includes('aiche'))        return fu.leadership;
+    if (msg.includes('education')     || msg.includes('ntu')        || msg.includes('study') || msg.includes('degree')) return fu.education;
+    if (msg.includes('experience')    || msg.includes('internship') || msg.includes('work')  || msg.includes('keppel')) return fu.experience;
+    return fu.default;
 };
 
-const Chatbot: React.FC<{ resumeData: ResumeData; theme: 'light' | 'dark' }> = ({ resumeData, theme }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [input, setInput] = useState('');
-    const [suggestions, setSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS);
+/** Returns true when the error signals the model itself is unavailable (not an auth/quota issue). */
+const isModelUnavailableError = (err: any): boolean => {
+    const m: string = err?.message ?? '';
+    return m.includes('404') || m.includes('not found') || (m.includes('model') && !m.includes('quota'));
+};
+
+// ─── useChatbot hook ──────────────────────────────────────────────────────────
+
+interface UseChatbotReturn {
+    messages:        ChatMessage[];
+    isLoading:       boolean;
+    input:           string;
+    suggestions:     string[];
+    showSuggestions: boolean;
+    activeModel:     string | null;
+    setInput:        React.Dispatch<React.SetStateAction<string>>;
+    initialize:      () => void;
+    sendMessage:     (text: string) => Promise<void>;
+}
+
+const useChatbot = (resumeData: ResumeData): UseChatbotReturn => {
+    const [messages,        setMessages]        = useState<ChatMessage[]>([]);
+    const [isLoading,       setIsLoading]       = useState(false);
+    const [input,           setInput]           = useState('');
+    const [suggestions,     setSuggestions]     = useState<string[]>(INITIAL_SUGGESTIONS);
     const [showSuggestions, setShowSuggestions] = useState(true);
-    const chatRef = useRef<any>(null);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const [activeModel,     setActiveModel]     = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen && messages.length === 0) {
-            console.log("VITE_API_KEY:", VITE_API_KEY ? "Found" : "Not found");
-            
-            if (!VITE_API_KEY) {
-                console.log("No API key, showing fallback");
-                setMessages([{ 
-                    role: 'model', 
-                    text: CONFIG.chatbot.fallbackGreeting.replace('{name}', resumeData.name)
-                }]);
-                return;
-            }
+    const chatRef         = useRef<any>(null);
+    const currentModelRef = useRef<string>(MODEL_PRIMARY);
 
-            console.log("Initializing Gemini AI...");
-            try {
-                const genAI = new GoogleGenerativeAI(VITE_API_KEY);
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-                
-                const systemInstruction = createSystemInstruction(resumeData);
-                
-                const chat = model.startChat({
-                    history: [
-                        {
-                            role: "user",
-                            parts: [{ text: systemInstruction }],
-                        },
-                        {
-                            role: "model",
-                            parts: [{ text: "I understand. I'll help answer questions about the portfolio owner based on their resume data." }],
-                        },
-                    ],
-                });
-                
-                chatRef.current = chat;
-                console.log("Gemini AI initialized successfully");
-                setMessages([{ 
-                    role: 'model', 
-                    text: CONFIG.chatbot.greeting.replace('{name}', resumeData.name)
-                }]);
-            } catch (err: any) {
-                console.error("Failed to initialize chatbot:", err);
-                setMessages([{ 
-                    role: 'model', 
-                    text: CONFIG.chatbot.fallbackGreeting.replace('{name}', resumeData.name)
-                }]);
-            }
+    /** Create a fresh chat session for the given model. */
+    const buildChat = useCallback((modelName: string) => {
+        const genAI = new GoogleGenerativeAI(VITE_API_KEY);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        return model.startChat({
+            history: [
+                { role: 'user',  parts: [{ text: createSystemInstruction(resumeData) }] },
+                { role: 'model', parts: [{ text: "I understand. I'll help answer questions about the portfolio owner based on their resume data." }] },
+            ],
+        });
+    }, [resumeData]);
+
+    /** Called once when the chatbot panel opens. */
+    const initialize = useCallback(() => {
+        if (!VITE_API_KEY) {
+            setMessages([{ role: 'model', text: CONFIG.chatbot.fallbackGreeting.replace('{name}', resumeData.name) }]);
+            return;
         }
-    }, [isOpen, resumeData]);
-
-    useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        try {
+            chatRef.current         = buildChat(MODEL_PRIMARY);
+            currentModelRef.current = MODEL_PRIMARY;
+            setActiveModel(MODEL_PRIMARY);
+            setMessages([{ role: 'model', text: CONFIG.chatbot.greeting.replace('{name}', resumeData.name) }]);
+        } catch (err: any) {
+            console.error('Failed to initialise chatbot:', err);
+            setMessages([{
+                role: 'model',
+                text: formatChatbotResponse(
+                    `Hi! I'm ${resumeData.name}. The chatbot is currently unavailable.\n\n**Please contact me directly:**\n\n📧 Email: ${resumeData.contact.email}\n💼 LinkedIn: ${resumeData.contact.linkedin || ''}`
+                ),
+            }]);
         }
-    }, [messages]);
+    }, [resumeData, buildChat]);
 
-    const handleSendMessage = async (e?: React.FormEvent, questionText?: string) => {
-        if (e) e.preventDefault();
-        const chat = chatRef.current;
-        const messageText = questionText || input;
-        
+    /** Send a user message. Falls back to MODEL_FALLBACK if the primary model is unavailable. */
+    const sendMessage = useCallback(async (messageText: string) => {
         if (!messageText.trim() || isLoading) return;
 
-        // If no API key or chat not initialized, show contact info
-        if (!VITE_API_KEY || !chat) {
-            const contactFallback = CONFIG.chatbot.contactFallback
-                .replace('{name}', resumeData.name)
-                .replace('{email}', resumeData.contact.email)
-                .replace('{linkedin}', resumeData.contact.linkedin || 'Not available')
-                .replace('{telegram}', resumeData.contact.telegram || 'Not available');
-            
-            setMessages(prev => [...prev, 
-                { role: 'user', text: messageText },
-                { role: 'model', text: contactFallback }
-            ]);
-            setInput('');
-            // Generate follow-up suggestions even without API
-            const followUps = generateFollowUpQuestions(messageText);
-            setSuggestions(followUps);
+        // No API key – show contact info only
+        if (!VITE_API_KEY || !chatRef.current) {
+            const contact = formatChatbotResponse(
+                `For detailed questions about ${resumeData.name}, please contact me directly:\n\n📧 ${resumeData.contact.email}` +
+                (resumeData.contact.linkedin ? `\n💼 LinkedIn: ${resumeData.contact.linkedin}` : '') +
+                (resumeData.contact.telegram ? `\n💬 Telegram: ${resumeData.contact.telegram}` : '')
+            );
+            setMessages(prev => [...prev, { role: 'user', text: messageText }, { role: 'model', text: contact }]);
+            setSuggestions(generateFollowUpQuestions(messageText));
             setShowSuggestions(true);
             return;
         }
 
-        const userMessage: ChatMessage = { role: 'user', text: messageText };
-        setMessages(prev => [...prev, userMessage]);
+        setMessages(prev => [...prev, { role: 'user', text: messageText }]);
         setInput('');
         setIsLoading(true);
-        
-        // Hide suggestions while loading
         setShowSuggestions(false);
 
-        try {
-            const result = await chat.sendMessage(messageText);
-            const response = await result.response;
-            const responseText = response.text();
+        const trySend = async (allowFallback = true): Promise<void> => {
+            try {
+                const result   = await chatRef.current.sendMessage(messageText);
+                const response = await result.response;
+                setMessages(prev => [...prev, { role: 'model', text: formatChatbotResponse(response.text()) }]);
+                setSuggestions(generateFollowUpQuestions(messageText));
+                setShowSuggestions(true);
+            } catch (err: any) {
+                console.error(`Error with model ${currentModelRef.current}:`, err);
 
-            // Format response with markdown and links
-            const formattedResponse = formatChatbotResponse(responseText);
-            setMessages(prev => [...prev, { role: 'model', text: formattedResponse }]);
-            
-            // Generate dynamic follow-up suggestions based on user's question
-            const followUps = generateFollowUpQuestions(messageText);
-            setSuggestions(followUps);
-            setShowSuggestions(true);
-        } catch (error: any) {
-            console.error('Error sending message:', error);
-            
-            // Extract error message from the error object
-            let errorMessage = CONFIG.chatbot.errorMessage;
-            
-            if (error?.message) {
-                // Check for API key errors
-                if (error.message.includes('API key not valid') || error.message.includes('API_KEY_INVALID')) {
-                    errorMessage = `❌ **API Key Error**\n\nYour Gemini API key is not valid. Please check your .env file and ensure you have a valid API key from Google AI Studio.\n\nGet your API key: https://aistudio.google.com/app/apikey`;
-                } else if (error.message.includes('quota') || error.message.includes('429')) {
-                    errorMessage = `❌ **Quota Exceeded**\n\nYour API quota has been exceeded. Please check your Google AI Studio account.`;
-                } else if (error.message.includes('model') || error.message.includes('404')) {
-                    errorMessage = `❌ **Model Error**\n\nThe AI model is not available. Error: ${error.message}`;
-                } else {
-                    errorMessage = `❌ **Error**\n\n${error.message}\n\nPlease check your API key or try again later.`;
+                // Switch to fallback once if the primary model itself is the problem
+                if (allowFallback && isModelUnavailableError(err) && currentModelRef.current === MODEL_PRIMARY) {
+                    console.warn(`${MODEL_PRIMARY} unavailable — retrying with ${MODEL_FALLBACK}`);
+                    try {
+                        chatRef.current         = buildChat(MODEL_FALLBACK);
+                        currentModelRef.current = MODEL_FALLBACK;
+                        setActiveModel(MODEL_FALLBACK);
+                        await trySend(false);
+                        return;
+                    } catch (rebuildErr) {
+                        console.error('Failed to build fallback model session:', rebuildErr);
+                    }
                 }
-            }
-            
-            setMessages(prev => [...prev, { 
-                role: 'model', 
-                text: errorMessage
-            }]);
-            setShowSuggestions(true);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
-    const handleSuggestionClick = (question: string) => {
-        handleSendMessage(undefined, question);
+                // User-friendly error message
+                const email    = resumeData.contact.email;
+                const linkedin = resumeData.contact.linkedin || '';
+                const m        = err?.message ?? '';
+                let errMsg = `❌ **Error Encountered**\n\nSorry, I encountered an error.\n\n**Please contact me directly:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
+                if (m.includes('API key not valid') || m.includes('API_KEY_INVALID')) {
+                    errMsg = `❌ **API Key Error**\n\nThe chatbot API key is not configured correctly.\n\n**Please contact me directly:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
+                } else if (m.includes('quota') || m.includes('429')) {
+                    errMsg = `❌ **Service Temporarily Unavailable**\n\nThe AI quota has been exceeded. Please try again later.\n\n**For immediate assistance:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
+                }
+                setMessages(prev => [...prev, { role: 'model', text: formatChatbotResponse(errMsg) }]);
+                setShowSuggestions(true);
+            }
+        };
+
+        await trySend();
+        setIsLoading(false);
+    }, [isLoading, resumeData, buildChat]);
+
+    return { messages, isLoading, input, suggestions, showSuggestions, activeModel, setInput, initialize, sendMessage };
+};
+
+// ─── Chatbot component ────────────────────────────────────────────────────────
+
+interface ChatbotProps {
+    resumeData: ResumeData;
+    theme: 'light' | 'dark';
+}
+
+const Chatbot: React.FC<ChatbotProps> = ({ resumeData, theme }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const {
+        messages, isLoading, input, suggestions, showSuggestions,
+        setInput, initialize, sendMessage,
+    } = useChatbot(resumeData);
+
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    // Initialise once when the panel first opens
+    useEffect(() => {
+        if (isOpen && messages.length === 0) initialize();
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-scroll to latest message
+    useEffect(() => {
+        if (chatContainerRef.current)
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }, [messages]);
+
+    const handleSubmit = (e?: React.FormEvent, questionText?: string) => {
+        if (e) e.preventDefault();
+        sendMessage(questionText ?? input);
     };
 
     if (!isOpen) {
         return (
-            <button 
+            <button
                 className="chatbot-toggle"
                 onClick={() => setIsOpen(true)}
                 aria-label="Open chatbot"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
             </button>
         );
     }
 
+    const headerLabel = VITE_API_KEY
+        ? CONFIG.chatbot.headers.withApi
+        : CONFIG.chatbot.headers.withoutApi;
+
     return (
         <div className="chatbot-container">
             <div className={`chatbot-window ${theme}-theme`}>
+
+                {/* Header */}
                 <div className="chatbot-header">
-                    <h3>{VITE_API_KEY ? CONFIG.chatbot.headers.withApi : CONFIG.chatbot.headers.withoutApi}</h3>
-                    <button 
-                        className="chatbot-close" 
-                        onClick={() => setIsOpen(false)}
-                        aria-label="Close chatbot"
-                    >
+                    <h3>{headerLabel}</h3>
+                    <button className="chatbot-close" onClick={() => setIsOpen(false)} aria-label="Close chatbot">
                         ×
                     </button>
                 </div>
-                
+
+                {/* Messages */}
                 <div className="chatbot-messages" ref={chatContainerRef}>
-                    {messages.map((message, index) => (
-                        <div key={index} className={`chatbot-message ${message.role}`}>
-                            <div 
-                                className="message-content"
-                                dangerouslySetInnerHTML={{ __html: message.text }}
-                            />
+                    {messages.map((msg, idx) => (
+                        <div key={idx} className={`chatbot-message ${msg.role}`}>
+                            <div className="message-content" dangerouslySetInnerHTML={{ __html: msg.text }} />
                         </div>
                     ))}
+
                     {isLoading && (
                         <div className="chatbot-message model">
                             <div className="message-content">
                                 <div className="typing-indicator">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
+                                    <span/><span/><span/>
                                 </div>
                             </div>
                         </div>
                     )}
-                    
-                    {/* Dynamic suggested questions that update based on conversation */}
+
+                    {/* Suggested questions */}
                     {showSuggestions && messages.length > 0 && !isLoading && VITE_API_KEY && (
                         <div className="chatbot-suggestions">
                             <p className="suggestions-title">
-                                {messages.length === 1 ? CONFIG.chatbot.suggestions.initial : CONFIG.chatbot.suggestions.followUp}
+                                {messages.length === 1
+                                    ? CONFIG.chatbot.suggestions.initial
+                                    : CONFIG.chatbot.suggestions.followUp}
                             </p>
                             <div className="suggestions-bubbles">
-                                {suggestions.map((question, index) => (
+                                {suggestions.map((q, idx) => (
                                     <button
-                                        key={`${question}-${index}`}
+                                        key={`${q}-${idx}`}
                                         className="suggestion-bubble"
-                                        onClick={() => handleSuggestionClick(question)}
+                                        onClick={() => handleSubmit(undefined, q)}
                                     >
-                                        {question}
+                                        {q}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
                 </div>
-                
-                <form onSubmit={handleSendMessage} className="chatbot-input-form">
+
+                {/* Input */}
+                <form onSubmit={handleSubmit} className="chatbot-input-form">
                     <input
                         type="text"
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={e => setInput(e.target.value)}
                         placeholder={VITE_API_KEY ? CONFIG.chatbot.placeholders.input : CONFIG.chatbot.placeholders.contactInput}
                         disabled={isLoading}
                         className="chatbot-input"
                     />
-                    <button 
-                        type="submit" 
-                        disabled={!input.trim() || isLoading}
-                        className="chatbot-send"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <button type="submit" disabled={!input.trim() || isLoading} className="chatbot-send">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"/>
                             <polygon points="22,2 15,22 11,13 2,9 22,2"/>
                         </svg>
                     </button>
                 </form>
+
             </div>
         </div>
     );

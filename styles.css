@@ -116,6 +116,12 @@ img.protected-image {
   width: 100%;
 }
 
+@media (max-width: 480px) {
+  .container {
+    padding-inline: 1rem;
+  }
+}
+
 .main-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -125,6 +131,21 @@ img.protected-image {
 
 #left-column {
   padding-block: 2rem;
+}
+
+@media (max-width: 767px) {
+  .main-layout {
+    gap: 1.5rem;
+    padding-block: 1rem;
+  }
+
+  #left-column {
+    padding-block: 1rem;
+  }
+
+  #right-column .content-section:not(:last-child) {
+    margin-bottom: 2.5rem;
+  }
 }
 
 #right-column .content-section:not(:last-child) {
@@ -188,6 +209,12 @@ img.protected-image {
   margin-inline: auto;
   padding-inline: 3rem;
   width: 100%;
+}
+
+@media (max-width: 767px) {
+  .nav-container {
+    padding-inline: 1.25rem;
+  }
 }
 
 .hamburger-menu {
@@ -439,6 +466,18 @@ img.protected-image {
   letter-spacing: -0.025em;
 }
 
+@media (max-width: 767px) {
+  .header-name {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-name {
+    font-size: 2rem;
+  }
+}
+
 .header-title-item {
   display: block;
   font-size: 1.125rem;
@@ -649,6 +688,25 @@ img.protected-image {
   flex-direction: column;
   gap: 2rem;
   padding-left: 2rem;
+  overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+  .timeline-title {
+    font-size: 1.2rem;
+  }
+
+  .timeline-subtitle {
+    font-size: 1rem;
+  }
+
+  .timeline-description {
+    font-size: 0.95rem;
+  }
+
+  .card-sheet {
+    padding: 1.5rem 1.25rem;
+  }
 }
 
 .timeline-container::before {
@@ -732,10 +790,17 @@ img.protected-image {
 
 .projects-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   width: 100%;
   max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .projects-container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 }
 
 @media (min-width: 640px) {
@@ -1207,6 +1272,10 @@ img.protected-image {
   right: 2rem;
   width: clamp(320px, 90vw, 420px);
   height: 65vh;
+  min-width: 280px;
+  min-height: 360px;
+  max-width: min(90vw, 640px);
+  max-height: 90vh;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
   border: 2px solid var(--accent-primary);
   border-radius: 16px;
@@ -1217,6 +1286,7 @@ img.protected-image {
   backdrop-filter: blur(20px);
   overflow: hidden;
   z-index: 1000;
+  resize: both;
 }
 
 /* Dark theme adjustments */
@@ -1616,6 +1686,27 @@ img.protected-image {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
+}
+
+/* Mobile chatbot — full-screen bottom sheet */
+@media (max-width: 600px) {
+  .chatbot-toggle {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .chatbot-window {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100% !important;
+    height: 85dvh !important;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    resize: none;
+  }
 }
 
 /* ==================================================================================
