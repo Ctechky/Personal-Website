@@ -64,13 +64,35 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
     );
 };
 
+const MONTH_ORDER: Record<string, number> = {
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+    july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+};
+
+/** Extract a numeric sort key (year * 100 + month) from a period string like "June 2025 - August 2025" or "Dec 2025 - 2026". */
+const periodSortKey = (period?: string): number => {
+    if (!period) return 0;
+    // Take the part after the last " - " as the end date
+    const parts = period.split(' - ');
+    const end = (parts[parts.length - 1] ?? '').trim();
+    const tokens = end.split(' ');
+    if (tokens.length === 1) {
+        // Just a year e.g. "2026"
+        return parseInt(tokens[0], 10) * 100 + 12; // treat as December of that year
+    }
+    const month = MONTH_ORDER[tokens[0].toLowerCase()] ?? 0;
+    const year  = parseInt(tokens[1], 10) || 0;
+    return year * 100 + month;
+};
+
 const Projects: React.FC<{ projects: Project[] }> = ({ projects }) => {
     const [filter, setFilter] = useState<'all' | 'ongoing' | 'completed' | 'maintenance'>('all');
 
-    // Filter projects based on status
+    // Sort by latest end date, then filter by status
     const filteredProjects = useMemo(() => {
-        if (filter === 'all') return projects;
-        return projects.filter(project => project.status === filter);
+        const sorted = [...projects].sort((a, b) => periodSortKey(b.period) - periodSortKey(a.period));
+        if (filter === 'all') return sorted;
+        return sorted.filter(project => project.status === filter);
     }, [projects, filter]);
 
     return (
