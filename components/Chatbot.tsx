@@ -6,8 +6,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const VITE_API_KEY = import.meta.env.VITE_API_KEY;
 
 // Model cascade: try primary first, fall back if unavailable
-const MODEL_PRIMARY  = 'gemini-2.5-flash';
-const MODEL_FALLBACK = 'gemini-2.5-flash-lite';
+const MODEL_PRIMARY  = 'gemini-2.5-flash-lite';
+const MODEL_FALLBACK = 'gemini-2.5-flash';
 
 // Nav-aware smooth scroll — accounts for the sticky TopNav height.
 // Exposed on window so inline onclick strings in dangerouslySetInnerHTML can call it.
@@ -105,6 +105,29 @@ const formatChatbotResponse = (text: string): string => {
     
     return text;
 };
+
+// ─── Response cache ────────────────────────────────────────────────────────────
+// Module-level (shared across renders, cleared on hard page refresh).
+// Skips API calls for repeated or near-identical questions.
+const responseCache = new Map<string, string>();
+
+const normalizeQuery = (text: string): string =>
+    text.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
+
+// ─── Client-side rate limiter ──────────────────────────────────────────────────
+// Keeps a rolling window of request timestamps. Blocks early at RPM_LIMIT
+// to stay safely under the free-tier 15 RPM cap.
+const RPM_LIMIT = 12;
+const requestTimestamps: number[] = [];
+
+const isRateLimited = (): boolean => {
+    const now = Date.now();
+    while (requestTimestamps.length && requestTimestamps[0] < now - 60_000)
+        requestTimestamps.shift();
+    return requestTimestamps.length >= RPM_LIMIT;
+};
+
+const recordRequest = () => requestTimestamps.push(Date.now());
 
 const createSystemInstruction = (resume: ResumeData): string => {
     const cfg = CONFIG.chatbot;
@@ -272,27 +295,44 @@ const useChatbot = (resumeData: ResumeData): UseChatbotReturn => {
 
     const chatRef         = useRef<any>(null);
     const currentModelRef = useRef<string>(MODEL_PRIMARY);
+    // Manually managed conversation history — lets us apply a sliding window
+    // so the context sent per request stays small regardless of session length.
+    const historyRef = useRef<{ role: string; parts: { text: string }[] }[]>([]);
+    const MAX_HISTORY_PAIRS = 5; // keep last 5 user+model pairs = 10 messages
 
-    /** Create a fresh chat session for the given model. */
-    const buildChat = useCallback((modelName: string) => {
+    /** Create a fresh chat session for the given model using trimmed history. */
+    const buildChat = useCallback((modelName: string, history: { role: string; parts: { text: string }[] }[] = []) => {
         const genAI = new GoogleGenerativeAI(VITE_API_KEY);
-        const model = genAI.getGenerativeModel({ model: modelName });
-        return model.startChat({
-            history: [
-                { role: 'user',  parts: [{ text: createSystemInstruction(resumeData) }] },
-                { role: 'model', parts: [{ text: "I understand. I'll help answer questions about the portfolio owner based on their resume data." }] },
-            ],
+        // systemInstruction is the correct, token-efficient way to pass context.
+        // It does NOT get included in the rolling chat history sent with each message.
+        const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction: createSystemInstruction(resumeData),
+            generationConfig: { maxOutputTokens: 512 },
         });
+        return model.startChat({ history });
     }, [resumeData]);
+
+    /** Trim historyRef to MAX_HISTORY_PAIRS user+model pairs and rebuild the session. */
+    const rebuildWithTrimmedHistory = useCallback((modelName: string) => {
+        const h = historyRef.current;
+        // Keep only the last MAX_HISTORY_PAIRS * 2 items (pairs of user+model)
+        const trimmed = h.length > MAX_HISTORY_PAIRS * 2
+            ? h.slice(h.length - MAX_HISTORY_PAIRS * 2)
+            : h;
+        historyRef.current = trimmed;
+        chatRef.current = buildChat(modelName, trimmed);
+    }, [buildChat]);
 
     /** Called once when the chatbot panel opens. */
     const initialize = useCallback(() => {
+        historyRef.current = []; // fresh session — clear history
         if (!VITE_API_KEY) {
             setMessages([{ role: 'model', text: CONFIG.chatbot.fallbackGreeting.replace('{name}', resumeData.name) }]);
             return;
         }
         try {
-            chatRef.current         = buildChat(MODEL_PRIMARY);
+            chatRef.current         = buildChat(MODEL_PRIMARY, []);
             currentModelRef.current = MODEL_PRIMARY;
             setActiveModel(MODEL_PRIMARY);
             setMessages([{ role: 'model', text: CONFIG.chatbot.greeting.replace('{name}', resumeData.name) }]);
@@ -324,29 +364,77 @@ const useChatbot = (resumeData: ResumeData): UseChatbotReturn => {
             return;
         }
 
+        // ── Cache hit: reply instantly without an API call ─────────────────
+        const cacheKey = normalizeQuery(messageText);
+        const cached   = responseCache.get(cacheKey);
+        if (cached) {
+            setMessages(prev => [...prev, { role: 'user', text: messageText }, { role: 'model', text: cached }]);
+            setSuggestions(generateFollowUpQuestions(messageText));
+            setShowSuggestions(true);
+            return;
+        }
+
+        // ── Client-side rate guard ─────────────────────────────────────────
+        if (isRateLimited()) {
+            setMessages(prev => [...prev,
+                { role: 'user', text: messageText },
+                { role: 'model', text: "I've been chatting a lot in the last minute and hit the free-tier rate limit 😅 Give it about a minute and try again!" },
+            ]);
+            setSuggestions(generateFollowUpQuestions(messageText));
+            setShowSuggestions(true);
+            return;
+        }
+
         setMessages(prev => [...prev, { role: 'user', text: messageText }]);
         setInput('');
         setIsLoading(true);
         setShowSuggestions(false);
 
-        const trySend = async (allowFallback = true): Promise<void> => {
+        const trySend = async (allowFallback = true, retries429 = 1): Promise<void> => {
             try {
-                const result   = await chatRef.current.sendMessage(messageText);
-                const response = await result.response;
-                setMessages(prev => [...prev, { role: 'model', text: formatChatbotResponse(response.text()) }]);
+                recordRequest();
+                const result    = await chatRef.current.sendMessage(messageText);
+                const response  = await result.response;
+                const formatted = formatChatbotResponse(response.text());
+
+                // Record this exchange in our manual history
+                historyRef.current.push(
+                    { role: 'user',  parts: [{ text: messageText }] },
+                    { role: 'model', parts: [{ text: response.text() }] },
+                );
+
+                // If history exceeds the window, rebuild session with trimmed context
+                if (historyRef.current.length > MAX_HISTORY_PAIRS * 2) {
+                    rebuildWithTrimmedHistory(currentModelRef.current);
+                }
+
+                // Store in cache for future identical/near-identical questions
+                responseCache.set(cacheKey, formatted);
+                setMessages(prev => [...prev, { role: 'model', text: formatted }]);
                 setSuggestions(generateFollowUpQuestions(messageText));
                 setShowSuggestions(true);
             } catch (err: any) {
                 console.error(`Error with model ${currentModelRef.current}:`, err);
+                const m = err?.message ?? '';
+
+                // 429 / RESOURCE_EXHAUSTED: wait 10 s then retry once
+                if (retries429 > 0 && (m.includes('429') || m.includes('RESOURCE_EXHAUSTED'))) {
+                    console.warn('Rate limited by API — retrying in 10 s…');
+                    setMessages(prev => [...prev, { role: 'model', text: '⏳ Hit the rate limit — retrying in 10 seconds…' }]);
+                    await new Promise(res => setTimeout(res, 10_000));
+                    setMessages(prev => prev.filter(msg => !msg.text.startsWith('⏳')));
+                    await trySend(allowFallback, retries429 - 1);
+                    return;
+                }
 
                 // Switch to fallback once if the primary model itself is the problem
                 if (allowFallback && isModelUnavailableError(err) && currentModelRef.current === MODEL_PRIMARY) {
                     console.warn(`${MODEL_PRIMARY} unavailable — retrying with ${MODEL_FALLBACK}`);
                     try {
-                        chatRef.current         = buildChat(MODEL_FALLBACK);
+                        chatRef.current         = buildChat(MODEL_FALLBACK, historyRef.current);
                         currentModelRef.current = MODEL_FALLBACK;
                         setActiveModel(MODEL_FALLBACK);
-                        await trySend(false);
+                        await trySend(false, retries429);
                         return;
                     } catch (rebuildErr) {
                         console.error('Failed to build fallback model session:', rebuildErr);
@@ -356,12 +444,11 @@ const useChatbot = (resumeData: ResumeData): UseChatbotReturn => {
                 // User-friendly error message
                 const email    = resumeData.contact.email;
                 const linkedin = resumeData.contact.linkedin || '';
-                const m        = err?.message ?? '';
                 let errMsg = `❌ **Error Encountered**\n\nSorry, I encountered an error.\n\n**Please contact me directly:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
                 if (m.includes('API key not valid') || m.includes('API_KEY_INVALID')) {
                     errMsg = `❌ **API Key Error**\n\nThe chatbot API key is not configured correctly.\n\n**Please contact me directly:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
-                } else if (m.includes('quota') || m.includes('429')) {
-                    errMsg = `❌ **Service Temporarily Unavailable**\n\nThe AI quota has been exceeded. Please try again later.\n\n**For immediate assistance:**\n\n📧 Email: ${email}\n💼 LinkedIn: ${linkedin}`;
+                } else if (m.includes('quota') || m.includes('429') || m.includes('RESOURCE_EXHAUSTED')) {
+                    errMsg = `The AI quota is exhausted for now. Try again in a few minutes, or reach me directly:\n\n📧 ${email}\n💼 LinkedIn: ${linkedin}`;
                 }
                 setMessages(prev => [...prev, { role: 'model', text: formatChatbotResponse(errMsg) }]);
                 setShowSuggestions(true);
@@ -370,7 +457,7 @@ const useChatbot = (resumeData: ResumeData): UseChatbotReturn => {
 
         await trySend();
         setIsLoading(false);
-    }, [isLoading, resumeData, buildChat]);
+    }, [isLoading, resumeData, buildChat, rebuildWithTrimmedHistory]);
 
     return { messages, isLoading, input, suggestions, showSuggestions, activeModel, setInput, initialize, sendMessage };
 };
