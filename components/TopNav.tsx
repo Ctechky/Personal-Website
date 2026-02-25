@@ -7,6 +7,7 @@ const navItems = [
     { href: '#leadership', label: 'Leadership' },
     { href: '#skills', label: 'Skills' },
     { href: '#hobbies', label: 'Hobbies' },
+    { href: 'https://blog.kokyangchong.com', label: 'Blog ↗', external: true },
     { href: '#contact', label: 'Contact' },
 ];
 
@@ -112,13 +113,23 @@ const TopNav: React.FC<TopNavProps> = ({ theme, toggleTheme }) => {
                 <ul className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
                     {navItems.map(item => (
                         <li key={item.href}>
-                            <a 
-                                href={item.href}
-                                className={activeLink === item.href ? 'active' : ''}
-                                onClick={(e) => handleNavClick(e, item.href)}
-                            >
-                                {item.label}
-                            </a>
+                            {(item as any).external ? (
+                                <a
+                                    href={item.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {item.label}
+                                </a>
+                            ) : (
+                                <a
+                                    href={item.href}
+                                    className={activeLink === item.href ? 'active' : ''}
+                                    onClick={(e) => handleNavClick(e, item.href)}
+                                >
+                                    {item.label}
+                                </a>
+                            )}
                         </li>
                     ))}
                 </ul>

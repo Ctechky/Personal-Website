@@ -9,6 +9,7 @@ import Skills from './components/Skills';
 import Hobbies from './components/Hobbies';
 import ContactCTA from './components/ContactCTA';
 import Chatbot from './components/Chatbot';
+import Blog from './components/Blog';
 import TopNav from './components/TopNav';
 import { RESUME_DATA } from './constants';
 import { CONFIG } from './config';
@@ -16,16 +17,13 @@ import { CONFIG } from './config';
 const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-  // Initialize theme from localStorage, default to light mode
+  // Initialize theme from localStorage, falling back to OS preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      setTheme('light');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    const systemTheme: 'light' | 'dark' = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const initial = savedTheme ?? systemTheme;
+    setTheme(initial);
+    document.documentElement.setAttribute('data-theme', initial);
   }, []);
 
   const toggleTheme = () => {
@@ -77,6 +75,10 @@ const App: React.FC = () => {
                 <Hobbies hobbies={RESUME_DATA.hobbies} />
               </section>
             )}
+            <section id="blog" className="content-section">
+              <h2 className="section-heading">{CONFIG.content.sectionHeadings.blog}</h2>
+              <Blog />
+            </section>
             <section id="contact" className="content-section">
               <ContactCTA 
                 email={RESUME_DATA.contact.email}
