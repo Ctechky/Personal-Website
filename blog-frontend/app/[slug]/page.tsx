@@ -212,7 +212,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         {/* CENTER — Article */}
         <article className="post-content-col">
           <div className="post-back-row">
-            <BackButton href="/" className="post-back" label="All Posts" />
+            <BackButton className="post-back" />
           </div>
 
           <div className="post-meta-row">
@@ -237,7 +237,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           )}
 
           <div className="post-footer-nav">
-            <BackButton href="/" className="post-footer-back" label="All Posts" />
+            <BackButton className="post-footer-back" />
           </div>
         </article>
 
