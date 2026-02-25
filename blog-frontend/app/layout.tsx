@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
 import ThemeToggle from './components/ThemeToggle';
+import NavBackLink from './components/NavBackLink';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
@@ -32,10 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} ${playfair.variable}`}>
         <header className="site-header">
           <div className="header-inner">
-            <Link href="https://kokyangchong.com" className="back-link">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-              Main Page
-            </Link>
+            <NavBackLink />
             <Link href="/" className="blog-brand">
               <span className="blog-brand-ky">KY</span>
               <span className="blog-brand-dot"> · </span>
